@@ -32,7 +32,7 @@ public interface PlanManager {
      *         schedule, which may happen if for example all incomplete {@link Step}s are already being worked on by
      *         other {@link PlanManager}s
      */
-    Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets);
+    Collection<? extends Step> getCandidates(Collection<PodLaunch> dirtyAssets);
 
     /**
      * Notifies constituent elements of TaskStatus updates.
@@ -47,5 +47,5 @@ public interface PlanManager {
      *
      * @return A {@link Set} containing assets that are dirty
      */
-    Set<PodInstanceRequirement> getDirtyAssets();
+    Set<PodLaunch> getDirtyAssets();
 }

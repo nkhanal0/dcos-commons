@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -311,14 +311,14 @@ public class TaskUtilsTest {
     public void testRelaunchFailedEssentialTaskInMixedPod() throws ConfigStoreException {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-essential0, server-0-essential1, server-1-essential1
-        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+        List<PodLaunch> reqs = TaskUtils.getPodRequirements(
                 buildStateStoreWithTasks(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 TWO_ESSENTIAL_TWO_NONESSENTIAL,
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-essential1", "server-1-essential1"));
 
         Assert.assertEquals(2, reqs.size());
-        PodInstanceRequirement req = reqs.get(0);
+        PodLaunch req = reqs.get(0);
         Assert.assertEquals("server-0:[essential0, essential1, nonessential0, nonessential1]", req.getName());
         Assert.assertEquals(Arrays.asList("essential0", "essential1", "nonessential0", "nonessential1"), req.getTasksToLaunch());
         req = reqs.get(1);
@@ -330,14 +330,14 @@ public class TaskUtilsTest {
     public void testRelaunchFailedNonEssentialTaskInMixedPod() throws ConfigStoreException {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-nonessential0, server-0-nonessential1, server-1-nonessential1
-        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+        List<PodLaunch> reqs = TaskUtils.getPodRequirements(
                 buildStateStoreWithTasks(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 TWO_ESSENTIAL_TWO_NONESSENTIAL,
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-nonessential0", "server-0-nonessential1", "server-1-nonessential1"));
 
         Assert.assertEquals(2, reqs.size());
-        PodInstanceRequirement req = reqs.get(0);
+        PodLaunch req = reqs.get(0);
         Assert.assertEquals("server-0:[nonessential0, nonessential1]", req.getName());
         Assert.assertEquals(Arrays.asList("nonessential0", "nonessential1"), req.getTasksToLaunch());
         req = reqs.get(1);
@@ -349,14 +349,14 @@ public class TaskUtilsTest {
     public void testRelaunchFailedMixedTasksInMixedPod() throws ConfigStoreException {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-essential0, server-0-nonessential0, server-1-nonessential1
-        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+        List<PodLaunch> reqs = TaskUtils.getPodRequirements(
                 buildStateStoreWithTasks(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 TWO_ESSENTIAL_TWO_NONESSENTIAL,
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-nonessential0", "server-1-nonessential1"));
 
         Assert.assertEquals(2, reqs.size());
-        PodInstanceRequirement req = reqs.get(0);
+        PodLaunch req = reqs.get(0);
         Assert.assertEquals("server-0:[essential0, essential1, nonessential0, nonessential1]", req.getName());
         Assert.assertEquals(Arrays.asList("essential0", "essential1", "nonessential0", "nonessential1"), req.getTasksToLaunch());
         req = reqs.get(1);
@@ -368,14 +368,14 @@ public class TaskUtilsTest {
     public void testRelaunchFailedEssentialTasksInEssentialPod() throws ConfigStoreException {
         // layout: 3 'server' pod instances, each with 2 essential tasks (only)
         // failed: server-0-essential0, server-0-essential1, server-1-essential1
-        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+        List<PodLaunch> reqs = TaskUtils.getPodRequirements(
                 buildStateStoreWithTasks(TWO_ESSENTIAL_TASKS),
                 TWO_ESSENTIAL,
                 filterTasksByName(TWO_ESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-essential1", "server-1-essential1"));
 
         Assert.assertEquals(reqs.toString(), 2, reqs.size());
-        PodInstanceRequirement req = reqs.get(0);
+        PodLaunch req = reqs.get(0);
         Assert.assertEquals("server-0:[essential0, essential1]", req.getName());
         Assert.assertEquals(Arrays.asList("essential0", "essential1"), req.getTasksToLaunch());
         req = reqs.get(1);
@@ -387,14 +387,14 @@ public class TaskUtilsTest {
     public void testRelaunchFailedNonessentialTasksInNonessentialPod() throws ConfigStoreException {
         // layout: 3 'server' pod instances, each with 2 nonessential tasks (only)
         // failed: server-0-nonessential0, server-0-nonessential1, server-1-nonessential1
-        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+        List<PodLaunch> reqs = TaskUtils.getPodRequirements(
                 buildStateStoreWithTasks(TWO_NONESSENTIAL_TASKS),
                 TWO_NONESSENTIAL,
                 filterTasksByName(TWO_NONESSENTIAL_TASKS,
                         "server-0-nonessential0", "server-0-nonessential1", "server-1-nonessential1"));
 
         Assert.assertEquals(reqs.toString(), 2, reqs.size());
-        PodInstanceRequirement req = reqs.get(0);
+        PodLaunch req = reqs.get(0);
         Assert.assertEquals("server-0:[nonessential0, nonessential1]", req.getName());
         Assert.assertEquals(Arrays.asList("nonessential0", "nonessential1"), req.getTasksToLaunch());
         req = reqs.get(1);

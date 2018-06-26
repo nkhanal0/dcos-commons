@@ -41,7 +41,7 @@ public class DefaultStepFactory implements StepFactory {
     @Override
     public Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch) {
         try {
-            LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
+            LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getId().getName(), tasksToLaunch);
             validate(podInstance, tasksToLaunch);
 
             List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance, tasksToLaunch).stream()
@@ -52,15 +52,17 @@ public class DefaultStepFactory implements StepFactory {
 
             return new DeploymentStep(
                     TaskUtils.getStepName(podInstance, tasksToLaunch),
-                    PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build(),
+                    podInstance,
+                    PodLaunch.newBuilder(podInstance, tasksToLaunch).build(),
                     stateStore,
                     namespace)
                     .updateInitialStatus(taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos));
         } catch (Exception e) {
             LOGGER.error("Failed to generate Step with exception: ", e);
             return new DeploymentStep(
-                    podInstance.getName(),
-                    PodInstanceRequirement.newBuilder(podInstance, Collections.emptyList()).build(),
+                    podInstance.getId().getName(),
+                    podInstance,
+                    PodLaunch.newBuilder(podInstance, Collections.emptyList()).build(),
                     stateStore,
                     namespace)
                     .addError(ExceptionUtils.getStackTrace(e));
@@ -80,7 +82,7 @@ public class DefaultStepFactory implements StepFactory {
             throw new Exception(String.format(
                     "Attempted to simultaneously launch tasks: %s in pod: %s using the same resource set id: %s. " +
                             "These tasks should either be run in separate steps or use different resource set ids",
-                    tasksToLaunch, podInstance.getName(), resourceSetIds));
+                    tasksToLaunch, podInstance.getId().getName(), resourceSetIds));
         }
 
         List<String> dnsPrefixes = taskSpecsToLaunch.stream()
@@ -95,7 +97,7 @@ public class DefaultStepFactory implements StepFactory {
             throw new Exception(String.format(
                     "Attempted to simultaneously launch tasks: %s in pod: %s using the same DNS name: %s. " +
                             "These tasks should either be run in separate steps or use different DNS names",
-                    tasksToLaunch, podInstance.getName(), dnsPrefixes));
+                    tasksToLaunch, podInstance.getId().getName(), dnsPrefixes));
         }
     }
 

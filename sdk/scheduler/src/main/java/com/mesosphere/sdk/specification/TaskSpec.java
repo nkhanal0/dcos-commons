@@ -45,10 +45,10 @@ public interface TaskSpec {
     Collection<TransportEncryptionSpec> getTransportEncryption();
 
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
-        return getInstanceName(podInstance, taskSpec.getName());
+        return getInstanceName(podInstance.getId(), taskSpec.getName());
     }
 
-    static String getInstanceName(PodInstance podInstance, String taskName) {
-        return podInstance.getName() + "-" + taskName;
+    static String getInstanceName(PodId podId, String taskName) {
+        return podId.getName() + "-" + taskName;
     }
 }

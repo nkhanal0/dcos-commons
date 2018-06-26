@@ -280,7 +280,7 @@ public class DefaultStepFactoryTest {
 
         stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
 
-        return new DefaultPodInstance(podSpec, 0);
+        return new PodInstance(podSpec, 0);
     }
 
 
@@ -314,7 +314,7 @@ public class DefaultStepFactoryTest {
 
         stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
 
-        return new DefaultPodInstance(podSpec, 0);
+        return new PodInstance(podSpec, 0);
     }
 
     private PodInstance getPodInstanceWithGoalState(GoalState goalState) throws Exception {
@@ -345,7 +345,7 @@ public class DefaultStepFactoryTest {
 
         stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
 
-        return new DefaultPodInstance(podSpec, 0);
+        return new PodInstance(podSpec, 0);
     }
 
     private PodInstance getPodInstanceWithSameDnsPrefixes() throws Exception {
@@ -380,6 +380,6 @@ public class DefaultStepFactoryTest {
 
         stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
 
-        return new DefaultPodInstance(podSpec, 0);
+        return new PodInstance(podSpec, 0);
     }
 }

@@ -37,13 +37,11 @@ public class DefaultPhaseFactory implements PhaseFactory {
     private List<Step> getSteps(PodSpec podSpec) {
         List<Step> steps = new ArrayList<>();
         for (int i = 0; i < podSpec.getCount(); i++) {
-            PodInstance podInstance = new DefaultPodInstance(podSpec, i);
-
-            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+            List<String> tasksToLaunch = podSpec.getTasks().stream()
                     .map(taskSpec -> taskSpec.getName())
                     .collect(Collectors.toList());
 
-            steps.add(stepFactory.getStep(podInstance, tasksToLaunch));
+            steps.add(stepFactory.getStep(new PodInstance(podSpec, i), tasksToLaunch));
         }
         return steps;
     }

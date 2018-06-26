@@ -10,7 +10,7 @@ import com.mesosphere.sdk.specification.NamedVIPSpec;
 import org.apache.mesos.Protos;
 
 /**
- * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement}
+ * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodLaunch}
  * for port resources as in {@link PortEvaluationStage}, additionally setting
  * {@link org.apache.mesos.Protos.DiscoveryInfo} properly for DC/OS to pick up the specified named VIP mapping.
  */

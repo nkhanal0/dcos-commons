@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C> {
 
     @Override
-    public Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets) {
+    public Collection<C> getCandidates(Collection<C> elements, Collection<PodLaunch> dirtyAssets) {
         // No prerequisites configured:
         return new DependencyStrategyHelper<C>(elements).getCandidates(isInterrupted(), dirtyAssets);
     }

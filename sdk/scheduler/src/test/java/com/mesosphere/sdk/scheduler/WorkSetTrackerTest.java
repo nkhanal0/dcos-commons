@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.TestStep;
 import com.mesosphere.sdk.testutils.PodTestUtils;
@@ -75,7 +75,7 @@ public class WorkSetTrackerTest {
     }
 
     private List<Step> getSteps(Integer index) {
-        PodInstanceRequirement podInstanceRequirement = PodTestUtils.getPodInstanceRequirement(index);
+        PodLaunch podInstanceRequirement = PodTestUtils.getPodInstanceRequirement(index);
         return Arrays.asList(
                 new TestStep(
                         testUUID,

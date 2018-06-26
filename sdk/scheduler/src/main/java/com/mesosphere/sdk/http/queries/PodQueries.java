@@ -12,6 +12,7 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -59,7 +60,7 @@ public class PodQueries {
             for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
                 TaskLabelReader labels = new TaskLabelReader(taskInfo);
                 try {
-                    podNames.add(PodInstance.getName(labels.getType(), labels.getIndex()));
+                    podNames.add(labels.getPodId().getName());
                 } catch (Exception e) {
                     LOGGER.warn(String.format("Failed to extract pod information from task %s", taskInfo.getName()), e);
                     unknownTaskNames.add(taskInfo.getName());
@@ -99,7 +100,7 @@ public class PodQueries {
                 for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance : podType.getValue().entrySet()) {
                     podJson.append("instances", getPodInstanceStatusJson(
                             stateStore,
-                            PodInstance.getName(podType.getKey(), podInstance.getKey()),
+                            PodId.getName(podType.getKey(), podInstance.getKey()),
                             podInstance.getValue()));
                 }
                 responseJson.append("pods", podJson);
@@ -111,7 +112,7 @@ public class PodQueries {
                 podTypeJson.put("name", UNKNOWN_POD_LABEL);
                 podTypeJson.append("instances", getPodInstanceStatusJson(
                         stateStore,
-                        PodInstance.getName(UNKNOWN_POD_LABEL, 0),
+                        PodId.getName(UNKNOWN_POD_LABEL, 0),
                         groupedTasks.unknownPod));
                 responseJson.append("pods", podTypeJson);
             }

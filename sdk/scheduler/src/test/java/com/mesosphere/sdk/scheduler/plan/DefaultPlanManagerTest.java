@@ -25,8 +25,8 @@ public class DefaultPlanManagerTest {
     private PlanManager planManager;
 
     @Mock Step mockStep;
-    @Mock private PodInstanceRequirement podInstance0;
-    @Mock private PodInstanceRequirement podInstance1;
+    @Mock private PodLaunch podInstance0;
+    @Mock private PodLaunch podInstance1;
 
     @Before
     public void beforeEach() {
@@ -233,7 +233,7 @@ public class DefaultPlanManagerTest {
         waitingManager.getPlan().proceed();
         Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());
 
-        final Set<PodInstanceRequirement> dirtyAssets = waitingManager.getDirtyAssets();
+        final Set<PodLaunch> dirtyAssets = waitingManager.getDirtyAssets();
         Assert.assertEquals(2, dirtyAssets.size());
         Assert.assertTrue(dirtyAssets.contains(podInstance0));
         Assert.assertTrue(dirtyAssets.contains(podInstance1));
@@ -263,7 +263,7 @@ public class DefaultPlanManagerTest {
         waitingPlan.proceed();
         Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());
 
-        final Set<PodInstanceRequirement> dirtyAssets = waitingManager.getDirtyAssets();
+        final Set<PodLaunch> dirtyAssets = waitingManager.getDirtyAssets();
         Assert.assertEquals(1, dirtyAssets.size());
         Assert.assertTrue(dirtyAssets.contains(podInstance1));
     }
@@ -292,7 +292,7 @@ public class DefaultPlanManagerTest {
         Assert.assertFalse(phase.isInterrupted());
         Assert.assertEquals(Status.WAITING, waitingManager.getPlan().getStatus());
 
-        final Set<PodInstanceRequirement> dirtyAssets = waitingManager.getDirtyAssets();
+        final Set<PodLaunch> dirtyAssets = waitingManager.getDirtyAssets();
         Assert.assertEquals(1, dirtyAssets.size());
         Assert.assertTrue(dirtyAssets.contains(podInstance1));
 

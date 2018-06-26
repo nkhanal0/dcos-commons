@@ -134,9 +134,9 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         return offers;
     }
 
-    private PodInstanceRequirement getPodInstanceRequirement(PodSpec podSpec, int index) {
-        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
-        return PodInstanceRequirement.newBuilder(
+    private PodLaunch getPodInstanceRequirement(PodSpec podSpec, int index) {
+        PodInstance podInstance = new PodInstance(podSpec, index);
+        return PodLaunch.newBuilder(
                 podInstance,
                 podSpec.getTasks().stream().map(TaskSpec::getName).collect(Collectors.toList()))
                 .build();
@@ -206,10 +206,10 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 TASK_A_MEM,
                 TASK_A_DISK,
                 2);
-        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(pod, 0);
-        PodInstanceRequirement conflictsOverlapTasks = getPodInstanceRequirement(podOverlapTask, 0);
-        PodInstanceRequirement noConflictDifferentTasks = getPodInstanceRequirement(podDifferentTask, 0);
-        PodInstanceRequirement noConflictDifferentIndex = getPodInstanceRequirement(podDifferentIndex, 0);
+        PodLaunch podInstanceRequirement = getPodInstanceRequirement(pod, 0);
+        PodLaunch conflictsOverlapTasks = getPodInstanceRequirement(podOverlapTask, 0);
+        PodLaunch noConflictDifferentTasks = getPodInstanceRequirement(podDifferentTask, 0);
+        PodLaunch noConflictDifferentIndex = getPodInstanceRequirement(podDifferentIndex, 0);
         // pods with overlapping tasks conflict
         Assert.assertTrue(podInstanceRequirement.conflictsWith(conflictsOverlapTasks));
         // pods with different tasks do NOT conflict

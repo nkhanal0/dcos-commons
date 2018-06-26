@@ -6,8 +6,7 @@ import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
@@ -201,7 +200,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 networkNames);
     }
 
-    private static PodInstanceRequirement getPodInstanceRequirement(int taskPort, Collection<String> networkNames) {
+    private static PodLaunch getPodInstanceRequirement(int taskPort, Collection<String> networkNames) {
         // Build Pod
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE,Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id("resourceSet")
@@ -217,11 +216,10 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 .goalState(GoalState.RUNNING)
                 .resourceSet(resourceSet)
                 .build();
-        PodSpec podSpec =
-                DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec)).build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodSpec podSpec = DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec)).build();
+        PodInstance podInstance = new PodInstance(podSpec, 0);
 
-        return PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME)).build();
+        return PodLaunch.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME)).build();
     }
 
     private static PodInfoBuilder getPodInfoBuilderOnNetwork(

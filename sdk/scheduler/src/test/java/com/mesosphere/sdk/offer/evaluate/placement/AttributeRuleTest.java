@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -25,7 +24,7 @@ import static org.junit.Assert.*;
 public class AttributeRuleTest {
     private static final PodSpec podSpec =
             DefaultPodSpec.newBuilder("type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
-    private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
+    private static final PodInstance POD_INSTANCE = new PodInstance(podSpec, 0);
     private static final Attribute ATTR_TEXT;
     private static final Attribute ATTR_SCALAR;
     private static final Attribute ATTR_RANGES;

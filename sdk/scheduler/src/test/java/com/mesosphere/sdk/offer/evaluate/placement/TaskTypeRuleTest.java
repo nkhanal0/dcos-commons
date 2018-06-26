@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -67,7 +66,7 @@ public class TaskTypeRuleTest {
                     labels.getIndex())
                     .getPodInstance()
                     .getPod();
-            return new DefaultPodInstance(podSpec, labels.getIndex());
+            return new PodInstance(podSpec, labels.getIndex());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

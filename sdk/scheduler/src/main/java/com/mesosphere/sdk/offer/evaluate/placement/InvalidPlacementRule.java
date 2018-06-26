@@ -30,7 +30,8 @@ public class InvalidPlacementRule implements PlacementRule {
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         return EvaluationOutcome.fail(this,
-                String.format("Invalid placement constraints for %s: %s", podInstance.getName(), constraints)).build();
+                String.format("Invalid placement constraints for %s: %s",
+                        podInstance.getId().getName(), constraints)).build();
     }
 
     @Override

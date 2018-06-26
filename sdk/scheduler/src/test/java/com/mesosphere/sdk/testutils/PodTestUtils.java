@@ -2,8 +2,7 @@ package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 
@@ -50,12 +49,12 @@ public class PodTestUtils {
     }
 
     public static PodInstance getPodInstance(int index) {
-        return new DefaultPodInstance(getPodSpec(), index);
+        return new PodInstance(getPodSpec(), index);
     }
 
-    public static PodInstanceRequirement getPodInstanceRequirement(int index) {
+    public static PodLaunch getPodInstanceRequirement(int index) {
         List<String> tasksToLaunch = Arrays.asList(getTaskSpec().getName());
-        return PodInstanceRequirement.newBuilder(getPodInstance(index), tasksToLaunch).build();
+        return PodLaunch.newBuilder(getPodInstance(index), tasksToLaunch).build();
     }
 
     public static TemplateUrlFactory getTemplateUrlFactory() {

@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -55,13 +55,13 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     }
 
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
-            PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
+            PodLaunch podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
         return recordLaunchWithCompleteOfferedResources(podInstanceRequirement, Constants.ANY_ROLE, offeredResources);
     }
 
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
-            PodInstanceRequirement podInstanceRequirement, String preReservedRole, Resource... offeredResources)
+            PodLaunch podInstanceRequirement, String preReservedRole, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources), preReservedRole),
@@ -70,7 +70,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     }
 
     protected List<Resource> recordLaunchWithOfferedResources(
-            PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
+            PodLaunch podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getOffer(Arrays.asList(offeredResources)),
@@ -79,7 +79,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     }
 
     private List<Resource> recordLaunchWithOfferedResources(
-            Protos.Offer offer, PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
+            Protos.Offer offer, PodLaunch podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement, Arrays.asList(offer));

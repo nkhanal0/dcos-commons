@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.TestStep;
@@ -22,9 +22,9 @@ public class ParallelStrategyTest {
     @Mock Step el1;
     @Mock Step el2;
 
-    @Mock private PodInstanceRequirement podInstanceRequirement0;
-    @Mock private PodInstanceRequirement podInstanceRequirement1;
-    @Mock private PodInstanceRequirement podInstanceRequirement2;
+    @Mock private PodLaunch podInstanceRequirement0;
+    @Mock private PodLaunch podInstanceRequirement1;
+    @Mock private PodLaunch podInstanceRequirement2;
 
     private ParallelStrategy<Step> strategy;
     private List<Step> steps;

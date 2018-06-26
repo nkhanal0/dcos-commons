@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import org.apache.mesos.Protos;
@@ -66,7 +67,7 @@ public class PlacementUtils {
      */
     public static boolean areEquivalent(TaskInfo taskInfo, PodInstance podInstance) {
         try {
-            return TaskUtils.isSamePodInstance(taskInfo, podInstance.getPod().getType(), podInstance.getIndex());
+            return new TaskLabelReader(taskInfo).getPodId().equals(podInstance.getId());
         } catch (TaskException e) {
             LOGGER.warn("Unable to extract pod type or index from TaskInfo", e);
             return false;

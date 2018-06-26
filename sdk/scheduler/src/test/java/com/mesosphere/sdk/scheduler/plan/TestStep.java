@@ -3,6 +3,8 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.google.common.annotations.VisibleForTesting;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.specification.PodInstance;
+
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -12,32 +14,41 @@ import java.util.*;
  */
 public class TestStep extends AbstractStep {
 
-    private PodInstanceRequirement podInstanceRequirement;
+    private final PodInstance podInstance;
+    private final PodLaunch podLaunch;
 
     public TestStep() {
         super("test-step", Optional.empty());
+        this.podInstance = null;
+        this.podLaunch = null;
     }
 
-    public TestStep(String name, PodInstanceRequirement podInstanceRequirement) {
+    public TestStep(String name, PodInstance podInstance, PodLaunch podLaunch) {
         super(name, Optional.empty());
-        this.podInstanceRequirement = podInstanceRequirement;
+        this.podInstance = podInstance;
+        this.podLaunch = podLaunch;
     }
 
-    public TestStep(UUID id, String name, PodInstanceRequirement podInstanceRequirement) {
+    public TestStep(UUID id, String name, PodInstance podInstance, PodLaunch podLaunch) {
         super(name, Optional.empty());
         this.id = id;
-        this.podInstanceRequirement = podInstanceRequirement;
+        this.podInstance = podInstance;
+        this.podLaunch = podLaunch;
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         setStatus(Status.PREPARED);
-        return getPodInstanceRequirement();
     }
 
     @Override
-    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
-        return Optional.ofNullable(podInstanceRequirement);
+    public Optional<PodInstance> getPodInstance() {
+        return Optional.ofNullable(podInstance);
+    }
+
+    @Override
+    public Optional<PodLaunch> getPodLaunch() {
+        return Optional.ofNullable(podLaunch);
     }
 
     @Override

@@ -41,7 +41,8 @@ public class PlanSchedulerTest {
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private StateStore mockStateStore;
 
-    private PodInstanceRequirement podInstanceRequirement;
+    private PodInstance podInstance;
+    private PodLaunch podLaunch;
     private PlanScheduler scheduler;
 
     @Before
@@ -56,10 +57,8 @@ public class PlanSchedulerTest {
         scheduler = new PlanScheduler(mockOfferEvaluator, mockStateStore, Optional.empty());
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-        podInstanceRequirement = PodInstanceRequirement.newBuilder(
-                podInstance,
-                TaskUtils.getTaskNames(podInstance)).build();
+        podInstance = new PodInstance(podSpec, 0);
+        podLaunch = PodLaunch.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build();
     }
 
     @Test
@@ -80,34 +79,36 @@ public class PlanSchedulerTest {
 
     @Test
     public void testEvaluateNoRecommendations() throws InvalidRequirementException, IOException {
-        TestOfferStep step = new TestOfferStep(podInstanceRequirement);
+        TestOfferStep step = new TestOfferStep(podInstance, podLaunch);
         step.setStatus(Status.PENDING);
-        when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
+        when(mockOfferEvaluator.evaluate(podInstance, podLaunch, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.recommendations.isEmpty());
-        verify(mockOfferEvaluator).evaluate(podInstanceRequirement, OFFERS);
+        verify(mockOfferEvaluator).evaluate(podInstance, podLaunch, OFFERS);
         assertTrue(step.isPrepared());
     }
 
     private static class TestOfferStep extends TestStep {
-        private final PodInstanceRequirement podInstanceRequirement;
+        private final PodInstance podInstance;
+        private final PodLaunch podLaunch;
         private Collection<OfferRecommendation> recommendations;
 
-        private TestOfferStep(PodInstanceRequirement podInstanceRequirement) {
+        private TestOfferStep(PodInstance podInstance, PodLaunch podLaunch) {
             super();
-            this.podInstanceRequirement = podInstanceRequirement;
+            this.podInstance = podInstance;
+            this.podLaunch = podLaunch;
             this.recommendations = Collections.emptyList();
         }
 
         @Override
-        public Optional<PodInstanceRequirement> start() {
-            super.start();
-            if (podInstanceRequirement == null) {
-                return Optional.empty();
-            } else {
-                return Optional.of(podInstanceRequirement);
-            }
+        public Optional<PodInstance> getPodInstance() {
+            return Optional.ofNullable(podInstance);
+        }
+
+        @Override
+        public Optional<PodLaunch> getPodLaunch() {
+            return Optional.ofNullable(podLaunch);
         }
 
         @Override

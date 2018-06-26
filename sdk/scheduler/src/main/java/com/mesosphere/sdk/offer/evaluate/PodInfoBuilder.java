@@ -12,7 +12,7 @@ import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.GoalStateOverride;
@@ -45,7 +45,8 @@ public class PodInfoBuilder {
     private final Map<String, TaskPortLookup> portsByTask;
 
     public PodInfoBuilder(
-            PodInstanceRequirement podInstanceRequirement,
+            PodInstance podInstance,
+            PodLaunch podLaunch,
             String serviceName,
             UUID targetConfigId,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
@@ -53,7 +54,6 @@ public class PodInfoBuilder {
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
             Map<TaskSpec, GoalStateOverride> overrideMap) throws InvalidRequirementException {
-        PodInstance podInstance = podInstanceRequirement.getPodInstance();
 
         // Generate new TaskInfos based on the task spec. To keep things consistent, we always generate new TaskInfos
         // from scratch, with the only carry-over being the prior task environment.
@@ -61,7 +61,7 @@ public class PodInfoBuilder {
             Protos.TaskInfo.Builder taskInfoBuilder = createTaskInfo(
                     podInstance,
                     taskSpec,
-                    podInstanceRequirement.getEnvironment(),
+                    podLaunch.getEnvironment(),
                     serviceName,
                     targetConfigId,
                     templateUrlFactory,
@@ -118,7 +118,7 @@ public class PodInfoBuilder {
      * it on task relaunch.
      */
     public Optional<Long> getPriorPortForTask(String taskSpecName, PortSpec portSpec) {
-        TaskPortLookup portFinder = portsByTask.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
+        TaskPortLookup portFinder = portsByTask.get(TaskSpec.getInstanceName(podInstance.getId(), taskSpecName));
         if (portFinder == null) {
             return Optional.empty();
         }
@@ -221,8 +221,7 @@ public class PodInfoBuilder {
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                 .setTargetConfiguration(targetConfigurationId)
                 .setGoalState(taskSpec.getGoal())
-                .setType(podInstance.getPod().getType())
-                .setIndex(podInstance.getIndex())
+                .setId(podInstance.getId())
                 .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
@@ -246,7 +245,6 @@ public class PodInfoBuilder {
             if (override.equals(GoalStateOverride.PAUSED)) {
                 commandBuilder.addUrisBuilder().setValue(schedulerConfig.getBootstrapURI());
             }
-
 
             // Any URIs defined in PodSpec itself.
             for (URI uri : podSpec.getUris()) {
@@ -278,12 +276,11 @@ public class PodInfoBuilder {
         }
 
         if (taskSpec.getDiscovery().isPresent()) {
-            taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
+            taskInfoBuilder.setDiscovery(
+                    getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getId().getIndex()));
         }
 
-
         taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
-
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
@@ -336,7 +333,7 @@ public class PodInfoBuilder {
         // aren't visible to sidecar tasks (as they would need to be added at the executor...):
 
         // Inject Pod Instance Index
-        environmentMap.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
+        environmentMap.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getId().getIndex()));
         // Inject Framework Name (raw, not safe for use in hostnames)
         environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject Framework pod host domain (with hostname-safe framework name)
@@ -618,12 +615,8 @@ public class PodInfoBuilder {
         return rLimitInfoBuilder.build();
     }
 
-    public String getType() {
-        return podInstance.getPod().getType();
-    }
-
-    public int getIndex() {
-        return podInstance.getIndex();
+    public PodId getPodId() {
+        return podInstance.getId();
     }
 
     public PodInstance getPodInstance() {
@@ -672,13 +665,7 @@ public class PodInfoBuilder {
         TaskLabelReader labels = new TaskLabelReader(builder);
 
         try {
-            labels.getType();
-        } catch (TaskException e) {
-            throw new InvalidRequirementException(e);
-        }
-
-        try {
-            labels.getIndex();
+            labels.getPodId();
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }

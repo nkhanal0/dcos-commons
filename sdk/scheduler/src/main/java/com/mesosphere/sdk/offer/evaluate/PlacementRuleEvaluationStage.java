@@ -9,7 +9,7 @@ import java.util.Collection;
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
- * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
+ * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodLaunch},
  * ensuring that its resources meet the constraints imposed by the supplied
  * {@link com.mesosphere.sdk.offer.evaluate.placement.PlacementRule}.
  */

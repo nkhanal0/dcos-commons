@@ -25,7 +25,7 @@ public class CanaryStrategyTest {
     private TestStep step4;
 
     private List<Step> steps;
-    private static List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
+    private static List<PodLaunch> podInstanceRequirements = new ArrayList<>();
 
     @BeforeClass
     public static void beforeAll() {
@@ -36,9 +36,9 @@ public class CanaryStrategyTest {
                     Arrays.asList(TestPodFactory.getTaskSpec()))
                     .build();
 
-            PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-            PodInstanceRequirement podInstanceRequirement =
-                    PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("task0")).build();
+            PodInstance podInstance = new PodInstance(podSpec, 0);
+            PodLaunch podInstanceRequirement =
+                    PodLaunch.newBuilder(podInstance, Arrays.asList("task0")).build();
             podInstanceRequirements.add(podInstanceRequirement);
         }
     }
@@ -441,7 +441,7 @@ public class CanaryStrategyTest {
     private static Collection<Step> getCandidates(
             Collection<Step> steps,
             Strategy<Step> strategy,
-            PodInstanceRequirement... dirtyAssets) {
+            PodLaunch... dirtyAssets) {
         return strategy.getCandidates(steps, Arrays.asList(dirtyAssets));
     }
 

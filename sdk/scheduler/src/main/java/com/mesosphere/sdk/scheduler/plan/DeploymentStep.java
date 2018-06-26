@@ -5,6 +5,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
@@ -21,7 +22,8 @@ import java.util.stream.Collectors;
 public class DeploymentStep extends AbstractStep {
 
     protected final StateStore stateStore;
-    protected final PodInstanceRequirement podInstanceRequirement;
+    protected final PodInstance podInstance;
+    protected final PodLaunch podLaunch;
     private final Map<String, GoalState> goalStateByTaskName;
 
     private final List<String> errors = new ArrayList<>();
@@ -35,15 +37,17 @@ public class DeploymentStep extends AbstractStep {
      */
     public DeploymentStep(
             String name,
-            PodInstanceRequirement podInstanceRequirement,
+            PodInstance podInstance,
+            PodLaunch podLaunch,
             StateStore stateStore,
             Optional<String> namespace) {
         super(name, namespace);
         this.stateStore = stateStore;
-        this.podInstanceRequirement = podInstanceRequirement;
+        this.podInstance = podInstance;
+        this.podLaunch = podLaunch;
         this.goalStateByTaskName = new HashMap<>();
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+            String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
             this.goalStateByTaskName.put(taskName, taskSpec.getGoal());
         }
         logger.info("Goal states: {}", goalStateByTaskName);
@@ -79,14 +83,19 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
-        return getPodInstanceRequirement();
+    public void start() {
+        // Do nothing.
     }
 
     @Override
-    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+    public Optional<PodInstance> getPodInstance() {
+        return Optional.of(podInstance);
+    }
+
+    @Override
+    public Optional<PodLaunch> getPodLaunch() {
         return Optional.of(
-                PodInstanceRequirement.newBuilder(podInstanceRequirement)
+                PodLaunch.newBuilder(podLaunch)
                         .environment(parameters)
                         .build());
     }
@@ -136,8 +145,8 @@ public class DeploymentStep extends AbstractStep {
         // updates while they're still deploying.
 
         // Extract full names of the defined tasks, e.g. "pod-0-task":
-        Collection<String> taskFullNames = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+        Collection<String> taskFullNames = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
                 .collect(Collectors.toList());
         return getDisplayStatus(stateStore, super.getStatus(), taskFullNames);
     }

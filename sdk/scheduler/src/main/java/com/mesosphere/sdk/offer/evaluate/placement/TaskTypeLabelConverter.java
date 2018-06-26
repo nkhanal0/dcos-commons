@@ -19,7 +19,7 @@ public class TaskTypeLabelConverter implements TaskTypeConverter {
     @Override
     public String getTaskType(TaskInfo taskInfo) {
         try {
-            return new TaskLabelReader(taskInfo).getType();
+            return new TaskLabelReader(taskInfo).getPodId().getType();
         } catch (TaskException e) {
             throw new IllegalArgumentException(String.format(
                     "Unable to extract task type label from provided TaskInfo: %s", taskInfo), e);

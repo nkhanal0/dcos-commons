@@ -7,7 +7,6 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -36,7 +35,7 @@ public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite 
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
     private static final PodSpec podSpec =
             DefaultPodSpec.newBuilder("type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
-    private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
+    private static final PodInstance POD_INSTANCE = new PodInstance(podSpec, 0);
 
     private static final String ATTRIB_NAME = "rack_id";
 
@@ -84,7 +83,7 @@ public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite 
                     labels.getIndex())
                     .getPodInstance()
                     .getPod();
-            return new DefaultPodInstance(podSpec, labels.getIndex());
+            return new PodInstance(podSpec, labels.getIndex());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

@@ -8,7 +8,7 @@ import com.mesosphere.sdk.offer.history.OfferOutcome;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * The OfferEvaluator processes {@link Protos.Offer}s and produces {@link OfferRecommendation}s.
  * The determination of what {@link OfferRecommendation}s, if any should be made are made
- * in reference to {@link PodInstanceRequirement}s.
+ * in reference to {@link PodLaunch}s.
  */
 public class OfferEvaluator {
 
@@ -60,41 +60,39 @@ public class OfferEvaluator {
         this.resourceNamespace = resourceNamespace;
     }
 
-    public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
+    public List<OfferRecommendation> evaluate(
+            PodInstance podInstance, PodLaunch podLaunch, List<Protos.Offer> offers)
             throws InvalidRequirementException, IOException {
         // All tasks in the service (used by some PlacementRules):
         Map<String, Protos.TaskInfo> allTasks = stateStore.fetchTasks().stream()
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
         // Preexisting tasks for this pod (if any):
-        Map<String, Protos.TaskInfo> thisPodTasks =
-                TaskUtils.getTaskNames(podInstanceRequirement.getPodInstance()).stream()
+        Map<String, Protos.TaskInfo> thisPodTasks = TaskUtils.getTaskNames(podInstance).stream()
                 .map(taskName -> allTasks.get(taskName))
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
         for (int i = 0; i < offers.size(); ++i) {
             List<OfferEvaluationStage> evaluationStages =
-                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks);
+                    getEvaluationPipeline(podInstance, podLaunch, allTasks.values(), thisPodTasks);
 
             Protos.Offer offer = offers.get(i);
 
-            MesosResourcePool resourcePool = new MesosResourcePool(
-                    offer, OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
+            MesosResourcePool resourcePool =
+                    new MesosResourcePool(offer, OfferEvaluationUtils.getRole(podInstance.getPod()));
 
             Map<TaskSpec, GoalStateOverride> overrideMap = new HashMap<>();
-            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+            for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
                 GoalStateOverride override =
-                        stateStore.fetchGoalOverrideStatus(
-                                TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
-                                .target;
-
+                        stateStore.fetchGoalOverrideStatus(TaskSpec.getInstanceName(podInstance, taskSpec)).target;
                 overrideMap.put(taskSpec, override);
             }
 
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
-                    podInstanceRequirement,
+                    podInstance,
+                    podLaunch,
                     serviceName,
-                    getTargetConfig(podInstanceRequirement, thisPodTasks.values()),
+                    getTargetConfig(podLaunch, thisPodTasks.values()),
                     templateUrlFactory,
                     schedulerConfig,
                     thisPodTasks.values(),
@@ -120,6 +118,7 @@ public class OfferEvaluator {
                 outcomeDetails.deleteCharAt(outcomeDetails.length() - 1);
             }
 
+            String stepName = TaskUtils.getStepName(podInstance, podLaunch.getTasksToLaunch());
             if (failedOutcomeCount != 0) {
                 logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
                         i + 1,
@@ -129,11 +128,8 @@ public class OfferEvaluator {
                         outcomeDetails.toString());
 
                 if (offerOutcomeTracker.isPresent()) {
-                    offerOutcomeTracker.get().track(new OfferOutcome(
-                            podInstanceRequirement.getName(),
-                            false,
-                            offer,
-                            outcomeDetails.toString()));
+                    offerOutcomeTracker.get().track(
+                            new OfferOutcome(stepName, false, offer, outcomeDetails.toString()));
                 }
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
@@ -144,11 +140,7 @@ public class OfferEvaluator {
                         i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
 
                 if (offerOutcomeTracker.isPresent()) {
-                    offerOutcomeTracker.get().track(new OfferOutcome(
-                        podInstanceRequirement.getName(),
-                        true,
-                        offer,
-                        outcomeDetails.toString()));
+                    offerOutcomeTracker.get().track(new OfferOutcome(stepName, true, offer, outcomeDetails.toString()));
                 }
 
                 return recommendations;
@@ -159,7 +151,8 @@ public class OfferEvaluator {
     }
 
     public List<OfferEvaluationStage> getEvaluationPipeline(
-            PodInstanceRequirement podInstanceRequirement,
+            PodInstance podInstance,
+            PodLaunch podLaunch,
             Collection<Protos.TaskInfo> allTasks,
             Map<String, Protos.TaskInfo> thisPodTasks) throws IOException {
 
@@ -177,7 +170,7 @@ public class OfferEvaluator {
 
         final String description;
         final boolean shouldGetNewRequirement;
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT) || allTasksFailed) {
+        if (podLaunch.getRecoveryType().equals(RecoveryType.PERMANENT) || allTasksFailed) {
             description = "failed";
             shouldGetNewRequirement = true;
         } else if (noLaunchedTasksExist) {
@@ -188,13 +181,11 @@ public class OfferEvaluator {
             shouldGetNewRequirement = false;
         }
         logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
-                description,
-                podInstanceRequirement.getPodInstance().getName(),
-                podInstanceRequirement.getTasksToLaunch());
+                description, podInstance.getId().getName(), podLaunch.getTasksToLaunch());
 
         // Only create a TLS Evaluation Stage builder if the service actually uses TLS certs.
         // This avoids performing TLS cert generation in cases where the cluster may not support it (e.g. DC/OS Open).
-        boolean anyTasksWithTLS = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+        boolean anyTasksWithTLS = podInstance.getPod().getTasks().stream()
                 .anyMatch(taskSpec -> !taskSpec.getTransportEncryption().isEmpty());
         Optional<TLSEvaluationStage.Builder> tlsStageBuilder = anyTasksWithTLS
                 ? Optional.of(new TLSEvaluationStage.Builder(serviceName, schedulerConfig))
@@ -203,9 +194,9 @@ public class OfferEvaluator {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
         if (shouldGetNewRequirement) {
             evaluationPipeline.add(new ExecutorEvaluationStage(serviceName, Optional.empty()));
-            evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks, tlsStageBuilder));
+            evaluationPipeline.addAll(getNewEvaluationPipeline(podInstance, podLaunch, allTasks, tlsStageBuilder));
         } else {
-            Protos.ExecutorInfo executorInfo = getExecutorInfo(podInstanceRequirement, thisPodTasks.values());
+            Protos.ExecutorInfo executorInfo = getExecutorInfo(podInstance, podLaunch, thisPodTasks.values());
 
             // An empty ExecutorID indicates we should use a new Executor, otherwise we should attempt to launch
             // tasks on an already running Executor.
@@ -216,19 +207,16 @@ public class OfferEvaluator {
 
             evaluationPipeline.add(new ExecutorEvaluationStage(serviceName, executorID));
             evaluationPipeline.addAll(getExistingEvaluationPipeline(
-                    podInstanceRequirement, thisPodTasks, allTasks, executorInfo, tlsStageBuilder));
+                    podInstance, podLaunch, thisPodTasks, allTasks, executorInfo, tlsStageBuilder));
         }
 
         return evaluationPipeline;
     }
 
     private Protos.ExecutorInfo getExecutorInfo(
-            PodInstanceRequirement podInstanceRequirement,
-            Collection<Protos.TaskInfo> taskInfos) {
+            PodInstance podInstance, PodLaunch podLaunch, Collection<Protos.TaskInfo> taskInfos) {
         // Filter which tasks are candidates for executor reuse.  Don't try to reuse your own executor.
-        List<String> taskNames = TaskUtils.getTaskNames(
-                podInstanceRequirement.getPodInstance(),
-                podInstanceRequirement.getTasksToLaunch());
+        List<String> taskNames = TaskUtils.getTaskNames(podInstance, podLaunch.getTasksToLaunch());
         Collection<Protos.TaskInfo> executorReuseCandidates = taskInfos.stream()
                 .filter(taskInfo -> !taskNames.contains(taskInfo.getName()))
                 .collect(Collectors.toList());
@@ -275,13 +263,13 @@ public class OfferEvaluator {
         }
     }
 
-    private static Map<String, ResourceSet> getNewResourceSets(PodInstanceRequirement podInstanceRequirement) {
+    private static Map<String, ResourceSet> getNewResourceSets(PodInstance podInstance, PodLaunch podLaunch) {
         Map<String, ResourceSet> resourceSets =
-                podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                        .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
+                podInstance.getPod().getTasks().stream()
+                        .filter(taskSpec -> podLaunch.getTasksToLaunch().contains(taskSpec.getName()))
                         .collect(Collectors.toMap(TaskSpec::getName, TaskSpec::getResourceSet));
 
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
             if (resourceSets.keySet().contains(taskSpec.getName())) {
                 continue;
             }
@@ -324,16 +312,17 @@ public class OfferEvaluator {
     }
 
     private List<OfferEvaluationStage> getNewEvaluationPipeline(
-            PodInstanceRequirement podInstanceRequirement,
+            PodInstance podInstance,
+            PodLaunch podLaunch,
             Collection<Protos.TaskInfo> allTasks,
             Optional<TLSEvaluationStage.Builder> tlsStageBuilder) {
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
-        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
-            evaluationStages.add(new PlacementRuleEvaluationStage(
-                    allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
+        if (podInstance.getPod().getPlacementRule().isPresent()) {
+            evaluationStages.add(
+                    new PlacementRuleEvaluationStage(allTasks, podInstance.getPod().getPlacementRule().get()));
         }
 
-        for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
+        for (VolumeSpec volumeSpec : podInstance.getPod().getVolumes()) {
             evaluationStages.add(VolumeEvaluationStage.getNew(
                     volumeSpec, Optional.empty(), resourceNamespace));
         }
@@ -342,7 +331,7 @@ public class OfferEvaluator {
         String role = null;
         String principal = null;
         boolean shouldAddExecutorResources = true;
-        for (Map.Entry<String, ResourceSet> entry : getNewResourceSets(podInstanceRequirement).entrySet()) {
+        for (Map.Entry<String, ResourceSet> entry : getNewResourceSets(podInstance, podLaunch).entrySet()) {
             String taskName = entry.getKey();
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
 
@@ -384,13 +373,13 @@ public class OfferEvaluator {
 
             // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
             // ExecutorInfo equality when launching new tasks
-            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+            for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
                 if (!taskSpec.getTransportEncryption().isEmpty()) {
                     evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
                 }
             }
 
-            boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
+            boolean shouldBeLaunched = podLaunch.getTasksToLaunch().contains(taskName);
             evaluationStages.add(
                     new LaunchEvaluationStage(serviceName, taskName, shouldBeLaunched));
         }
@@ -436,29 +425,30 @@ public class OfferEvaluator {
     }
 
     private List<OfferEvaluationStage> getExistingEvaluationPipeline(
-            PodInstanceRequirement podInstanceRequirement,
+            PodInstance podInstance,
+            PodLaunch podLaunch,
             Map<String, Protos.TaskInfo> podTasks,
             Collection<Protos.TaskInfo> allTasks,
             Protos.ExecutorInfo executorInfo,
             Optional<TLSEvaluationStage.Builder> tlsStageBuilder) {
-        List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
+        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> podLaunch.getTasksToLaunch().contains(taskSpec.getName()))
                 .collect(Collectors.toList());
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
 
         // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
         // ExecutorInfo equality when launching new tasks
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
             if (!taskSpec.getTransportEncryption().isEmpty()) {
                 evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
             }
         }
 
-        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent() &&
-                podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-            evaluationStages.add(new PlacementRuleEvaluationStage(
-                    allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
+        if (podInstance.getPod().getPlacementRule().isPresent() &&
+                podLaunch.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+            evaluationStages.add(
+                    new PlacementRuleEvaluationStage(allTasks, podInstance.getPod().getPlacementRule().get()));
         }
 
         ResourceSpec firstResource = taskSpecs.get(0).getResourceSet().getResources().iterator().next();
@@ -467,7 +457,7 @@ public class OfferEvaluator {
         String principal = firstResource.getPrincipal();
 
         ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
-                podInstanceRequirement.getPodInstance().getPod(),
+                podInstance.getPod(),
                 getExecutorResources(preReservedRole, role, principal),
                 executorInfo.getResourcesList(),
                 resourceNamespace);
@@ -478,10 +468,8 @@ public class OfferEvaluator {
         evaluationStages.addAll(executorResourceMapper.getEvaluationStages());
 
         for (TaskSpec taskSpec : taskSpecs) {
-            String taskInstanceName =
-                    TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());
-            Protos.TaskInfo taskInfo =
-                    getTaskInfoSharingResourceSet(podInstanceRequirement.getPodInstance(), taskSpec, podTasks);
+            String taskInstanceName = TaskSpec.getInstanceName(podInstance.getId(), taskSpec.getName());
+            Protos.TaskInfo taskInfo = getTaskInfoSharingResourceSet(podInstance, taskSpec, podTasks);
             if (taskInfo == null) {
                 logger.error("Failed to fetch task {}.  Cannot generate resource map.", taskInstanceName);
                 return Collections.emptyList();
@@ -493,7 +481,7 @@ public class OfferEvaluator {
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
 
-            boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
+            boolean shouldLaunch = podLaunch.getTasksToLaunch().contains(taskSpec.getName());
             evaluationStages.add(
                     new LaunchEvaluationStage(serviceName, taskSpec.getName(), shouldLaunch));
         }
@@ -502,11 +490,9 @@ public class OfferEvaluator {
     }
 
     private static Protos.TaskInfo getTaskInfoSharingResourceSet(
-            PodInstance podInstance,
-            TaskSpec taskSpec,
-            Map<String, Protos.TaskInfo> podTasks) {
+            PodInstance podInstance, TaskSpec taskSpec, Map<String, Protos.TaskInfo> podTasks) {
 
-        String taskInfoName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
+        String taskInfoName = TaskSpec.getInstanceName(podInstance.getId(), taskSpec.getName());
         Protos.TaskInfo taskInfo = podTasks.get(taskInfoName);
         if (taskInfo != null) {
             return taskInfo;
@@ -515,7 +501,7 @@ public class OfferEvaluator {
         String resourceSetId = taskSpec.getResourceSet().getId();
         List<String> sharedTaskNames = podInstance.getPod().getTasks().stream()
                 .filter(ts -> ts.getResourceSet().getId().equals(resourceSetId))
-                .map(ts -> TaskSpec.getInstanceName(podInstance, ts.getName()))
+                .map(ts -> TaskSpec.getInstanceName(podInstance.getId(), ts.getName()))
                 .collect(Collectors.toList());
 
         for (String taskName : sharedTaskNames) {
@@ -529,8 +515,8 @@ public class OfferEvaluator {
     }
 
     @VisibleForTesting
-    UUID getTargetConfig(PodInstanceRequirement podInstanceRequirement, Collection<Protos.TaskInfo> taskInfos) {
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.NONE) || taskInfos.isEmpty()) {
+    UUID getTargetConfig(PodLaunch podLaunch, Collection<Protos.TaskInfo> taskInfos) {
+        if (podLaunch.getRecoveryType().equals(RecoveryType.NONE) || taskInfos.isEmpty()) {
             return targetConfigId;
         } else {
             // 1. Recovery always only handles tasks with a goal state of RUNNING

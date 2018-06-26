@@ -9,6 +9,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.ResourceCleanupStep;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -183,9 +184,8 @@ public class DecommissionPlanFactory {
      */
     @VisibleForTesting
     static class PodKey implements Comparable<PodKey> {
+        private final PodId podId;
         private final int podTypeIndex;
-        private final String podType;
-        private final int podIndex;
 
         /**
          * Constructor for {@link PodKey}.
@@ -194,11 +194,10 @@ public class DecommissionPlanFactory {
          * @param podIndex The index of the pod instance.  See: {@link PodInstance#getIndex()}.
          * @param orderedPodTypes the list of known pod types in order of priority (reverse of ServiceSpec ordering)
          */
-        PodKey(String podType, int podIndex, List<String> orderedPodTypes) throws TaskException {
-            this.podType = podType;
+        PodKey(PodId podId, List<String> orderedPodTypes) throws TaskException {
+            this.podId = podId;
             // If the pod is unknown, it gets a -1, placing it at higher priority than listed pods:
-            this.podTypeIndex = orderedPodTypes.indexOf(podType);
-            this.podIndex = podIndex;
+            this.podTypeIndex = orderedPodTypes.indexOf(podId.getType());
         }
 
         /**
@@ -215,17 +214,17 @@ public class DecommissionPlanFactory {
                 // Order pods by ServiceSpec ordering (unlisted in ServiceSpec => -1 index => higher priority)
                 // (pod2 before pod1, and unknown before pod2)
                 return podTypeIndex - other.podTypeIndex;
-            } else if (podTypeIndex == -1 && !podType.equals(other.podType)) {
+            } else if (podTypeIndex == -1 && !this.podId.getType().equals(other.podId.getType())) {
                 // The pod types are both unlisted, but are not equal to each other. Just order them alphabetically.
                 // (unknownA before unknownB)
-                return podType.compareTo(other.podType);
+                return this.podId.getType().compareTo(other.podId.getType());
             }
             // The pod types are indentical. Order them according to their index. (pod-3 before pod-2)
-            return other.podIndex - podIndex;
+            return other.podId.getIndex() - this.podId.getIndex();
         }
 
         public String getPodName() {
-            return PodInstance.getName(podType, podIndex);
+            return podId.getName();
         }
 
         @Override
@@ -265,18 +264,18 @@ public class DecommissionPlanFactory {
             final PodKey podKey;
             try {
                 TaskLabelReader labelReader = new TaskLabelReader(task);
-                podKey = new PodKey(labelReader.getType(), labelReader.getIndex(), orderedPodTypes);
+                podKey = new PodKey(labelReader.getPodId(), orderedPodTypes);
             } catch (TaskException e) {
                 logger.error(String.format(
                         "Failed to retrieve task metadata. Omitting task from decommission: %s", task.getName()), e);
                 continue;
             }
 
-            Integer expectedPodCount = expectedPodCounts.get(podKey.podType);
+            Integer expectedPodCount = expectedPodCounts.get(podKey.podId.getType());
             if (expectedPodCount == null) {
                 logger.info("Scheduling '{}' for decommission: '{}' is not present in service spec: {}",
-                        task.getName(), podKey.podType, expectedPodCounts.keySet());
-            } else if (podKey.podIndex >= expectedPodCount) {
+                        task.getName(), podKey.podId.getType(), expectedPodCounts.keySet());
+            } else if (podKey.podId.getIndex() >= expectedPodCount) {
                 logger.info("Scheduling '{}' for decommission: '{}' exceeds desired pod count {}",
                         task.getName(), podKey.getPodName(), expectedPodCount);
             } else {

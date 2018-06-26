@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
@@ -9,6 +11,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testing.*;
@@ -379,26 +382,35 @@ public class ServiceTest {
         Optional<RecoveryPlanOverriderFactory> overrider = Optional.of(new RecoveryPlanOverriderFactory() {
             @Override
             public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
+                Map<PodId, PodInstance> podInstances = plans.stream()
+                        .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                        .findFirst().get()
+                        .getChildren().stream()
+                        .filter(phase -> phase.getName().equals("hello"))
+                        .findFirst().get()
+                        .getChildren().stream()
+                        .map(step -> step.getPodInstance().get())
+                        .collect(Collectors.toMap(podInstance -> podInstance.getId(), podInstance -> podInstance));
+
                 return new RecoveryPlanOverrider() {
                     @Override
-                    public Optional<Phase> override(PodInstanceRequirement podInstanceRequirement) {
-                        if (podInstanceRequirement.getPodInstance().getPod().getType().equals("hello") &&
-                                podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-                            Phase phase = new DefaultPhase(
-                                    recoveryPhaseName,
-                                    Arrays.asList(
-                                            new RecoveryStep(
-                                                    podInstanceRequirement.getPodInstance().getName(),
-                                                    podInstanceRequirement,
-                                                    new UnconstrainedLaunchConstrainer(),
-                                                    stateStore)),
-                                    new SerialStrategy<>(),
-                                    Collections.emptyList());
-
-                            return Optional.of(phase);
+                    public Optional<Phase> override(PodLaunch podLaunch) {
+                        if (!podLaunch.getId().getType().equals("hello") ||
+                                !podLaunch.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+                            // Not a hello task, or not a permanent recovery.
+                            return Optional.empty();
                         }
 
-                        return Optional.empty();
+                        return Optional.of(new DefaultPhase(
+                                recoveryPhaseName,
+                                Arrays.asList(new RecoveryStep(
+                                        TaskUtils.getStepName(podLaunch.getId(), podLaunch.getTasksToLaunch()),
+                                        podInstance,
+                                        podLaunch,
+                                        new UnconstrainedLaunchConstrainer(),
+                                        stateStore)),
+                                new SerialStrategy<>(),
+                                Collections.emptyList()));
                     }
                 };
             }

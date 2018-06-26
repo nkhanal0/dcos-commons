@@ -17,7 +17,6 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 
 /**
@@ -120,10 +119,9 @@ public class ClusterState {
         for (AcceptEntry acceptCall : acceptCalls) {
             // Check the tasks in this accept call for any tasks which match this pod:
             for (Protos.TaskInfo launchedTask : acceptCall.getTasks()) {
-                final TaskLabelReader reader = new TaskLabelReader(launchedTask);
                 final String thisPod;
                 try {
-                    thisPod = PodInstance.getName(reader.getType(), reader.getIndex());
+                    thisPod = new TaskLabelReader(launchedTask).getPodId().getName();
                 } catch (TaskException e) {
                     throw new IllegalStateException("Unable to extract pod from task " + launchedTask.getName(), e);
                 }
@@ -184,7 +182,7 @@ public class ClusterState {
             Protos.TaskInfo task, Collection<Protos.ExecutorInfo> executors) {
         final String podType;
         try {
-            podType = new TaskLabelReader(task).getType();
+            podType = new TaskLabelReader(task).getPodId().getType();
         } catch (TaskException e) {
             throw new IllegalStateException("Unable to extract pod from task " + task.getName(), e);
         }

@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -14,7 +15,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Attempts to start {@link Step}s, while fulfilling any {@link PodInstanceRequirement}s they provide.
+ * Attempts to start {@link Step}s, while fulfilling any {@link PodLaunch}s they provide.
  */
 public class PlanScheduler {
 
@@ -62,24 +63,27 @@ public class PlanScheduler {
         }
 
         logger.info("Processing resource offers for step: {}", step.getName());
-        Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.start();
-        if (!podInstanceRequirementOptional.isPresent()) {
-            logger.info("No PodInstanceRequirement for step: {}", step.getName());
+        step.start();
+        Optional<PodInstance> podInstanceOptional = step.getPodInstance();
+        Optional<PodLaunch> podLaunchOptional = step.getPodLaunch();
+        if (!podInstanceOptional.isPresent() || !podLaunchOptional.isPresent()) {
+            logger.info("No PodInstance or PodLaunch for step: {}", step.getName());
             step.updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
 
-        PodInstanceRequirement podInstanceRequirement = podInstanceRequirementOptional.get();
+        PodInstance podInstance = podInstanceOptional.get();
+        PodLaunch podLaunch = podLaunchOptional.get();
         // It is harmless to attempt to kill tasks which have never been launched.  This call attempts to Kill all Tasks
         // with a Task name which is equivalent to that expressed by the OfferRequirement.  If no such Task is currently
         // running no operation occurs.
-        killTasks(podInstanceRequirement);
+        killTasks(podInstance, podLaunch);
 
         // Step has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
         final List<OfferRecommendation> recommendations;
         try {
-            recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
+            recommendations = offerEvaluator.evaluate(podInstance, podLaunch, offers);
         } catch (InvalidRequirementException | IOException e) {
             logger.error("Failed generate OfferRecommendations.", e);
             return Collections.emptyList();
@@ -89,7 +93,7 @@ public class PlanScheduler {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by step {}: {}",
-                    step.getName(), podInstanceRequirement);
+                    step.getName(), podLaunch);
             step.updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
@@ -102,22 +106,22 @@ public class PlanScheduler {
         return recommendations;
     }
 
-    private void killTasks(PodInstanceRequirement podInstanceRequirement) {
+    private void killTasks(PodInstance podInstance, PodLaunch podLaunch) {
         Map<String, Protos.TaskInfo> taskInfoMap = new HashMap<>();
         stateStore.fetchTasks().forEach(taskInfo -> taskInfoMap.put(taskInfo.getName(), taskInfo));
 
-        Set<String> resourceSetsToConsume = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
+        Set<String> resourceSetsToConsume = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> podLaunch.getTasksToLaunch().contains(taskSpec.getName()))
                 .map(taskSpec -> taskSpec.getResourceSet().getId())
                 .collect(Collectors.toSet());
-        List<String> tasksToKill = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+        List<String> tasksToKill = podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
-                .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
                 .collect(Collectors.toList());
         logger.info("Killing {} for pod instance requirement {}:{}, with resource sets to consume {}",
                 tasksToKill,
-                podInstanceRequirement.getPodInstance().getName(),
-                podInstanceRequirement.getTasksToLaunch(),
+                podInstance.getId().getName(),
+                podLaunch.getTasksToLaunch(),
                 resourceSetsToConsume,
                 tasksToKill);
 

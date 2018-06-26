@@ -23,7 +23,7 @@ import static com.mesosphere.sdk.offer.Constants.RECOVERY_PLAN_NAME;
  * list of one or more error messages to be shown to the user.
  */
 public interface Plan extends ParentElement<Phase> {
-    default Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
+    default Collection<? extends Step> getCandidates(Collection<PodLaunch> dirtyAssets) {
         Collection<Phase> candidatePhases = getStrategy().getCandidates(getChildren(), dirtyAssets);
         Collection<Step> candidateSteps = candidatePhases.stream()
                 .map(phase -> phase.getStrategy().getCandidates(phase.getChildren(), dirtyAssets))

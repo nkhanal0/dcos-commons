@@ -31,7 +31,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     @Override
     public List<Step> getCandidates() {
         // Assets that are being actively worked on
-        final Set<PodInstanceRequirement> dirtiedAssets = new HashSet<>();
+        final Set<PodLaunch> dirtiedAssets = new HashSet<>();
 
         // Pro-actively determine all known dirty assets. This is used to ensure that PlanManagers that are presented
         // with offers first, does not accidentally schedule an asset that's actively being worked upon by another
@@ -49,8 +49,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
             }
 
             try {
-                Collection<PodInstanceRequirement> relevantDirtyAssets =
-                        getRelevantDirtyAssets(planManager, dirtiedAssets);
+                Collection<PodLaunch> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
 
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> steps = planManager.getCandidates(relevantDirtyAssets);
@@ -67,8 +66,8 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
                 // Collect dirtied assets
                 dirtiedAssets.addAll(
                         steps.stream()
-                        .filter(step -> step.getPodInstanceRequirement().isPresent())
-                        .map(step -> step.getPodInstanceRequirement().get())
+                        .filter(step -> step.getPodLaunch().isPresent())
+                        .map(step -> step.getPodLaunch().get())
                         .collect(Collectors.toList()));
             } catch (Throwable t) {
                 logger.error(String.format("Error with %s plan manager", planManager.getPlan().getName()), t);
@@ -87,20 +86,20 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         return planManagers;
     }
 
-    private static Collection<PodInstanceRequirement> getRelevantDirtyAssets(
-            PlanManager planManager, Set<PodInstanceRequirement> dirtyAssets) {
+    private static Collection<PodLaunch> getRelevantDirtyAssets(PlanManager planManager, Set<PodLaunch> dirtyAssets) {
         Plan plan = planManager.getPlan();
         return dirtyAssets.stream()
-                .filter(podInstanceRequirement -> assetIsRelevant(podInstanceRequirement, plan))
+                .filter(podLaunch -> assetIsRelevant(podLaunch, plan))
                 .collect(Collectors.toList());
     }
 
-    private static boolean assetIsRelevant(PodInstanceRequirement podInstanceRequirement, Plan plan) {
+    private static boolean assetIsRelevant(PodLaunch podLaunch, Plan plan) {
         return plan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step.isRunning() && step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
-                .filter(podRequirement -> podRequirement.conflictsWith(podInstanceRequirement))
+                .filter(step ->
+                        step.isRunning()
+                        && step.getPodLaunch().isPresent()
+                        && step.getPodLaunch().get().conflictsWith(podLaunch))
                 .count() == 0;
     }
 }

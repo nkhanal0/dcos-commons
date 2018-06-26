@@ -274,7 +274,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         final boolean isPermanentlyFailed;
         try {
             TaskLabelReader reader = new TaskLabelReader(taskInfo);
-            podType = reader.getType();
+            podType = reader.getPodId().getType();
             isPermanentlyFailed = reader.isPermanentlyFailed();
         } catch (TaskException e) {
             logger.error(String.format(

@@ -22,9 +22,9 @@ public class SerialStrategyTest {
     @Mock Step el1;
     @Mock Step el2;
 
-    @Mock private PodInstanceRequirement podInstanceRequirement0;
-    @Mock private PodInstanceRequirement podInstanceRequirement1;
-    @Mock private PodInstanceRequirement podInstanceRequirement2;
+    @Mock private PodLaunch podInstanceRequirement0;
+    @Mock private PodLaunch podInstanceRequirement1;
+    @Mock private PodLaunch podInstanceRequirement2;
 
     private SerialStrategy<Step> strategy;
     private List<Step> steps;

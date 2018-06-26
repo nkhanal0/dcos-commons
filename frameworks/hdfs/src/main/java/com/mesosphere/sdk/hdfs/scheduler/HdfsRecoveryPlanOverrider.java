@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,45 +31,32 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     }
 
     @Override
-    public Optional<Phase> override(PodInstanceRequirement stoppedPod) {
-        if (stoppedPod.getPodInstance().getPod().getType().equals("data")
-                || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
-            logger.info("No overrides necessary. Pod is not a journal or name node or it isn't a permanent failure.");
+    public Optional<Phase> override(PodLaunch stoppedPod) {
+        PodId podId = stoppedPod.getId();
+
+        if (podId.getType().equals("data") || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
+            logger.info("No overrides necessary. Pod is not a journal or name node, or failure isn't permanent");
             return Optional.empty();
         }
 
-        if (stoppedPod.getPodInstance().getPod().getType().equals("name")) {
-            switch (stoppedPod.getPodInstance().getIndex()) {
-                case 0:
-                    logger.info("Returning replacement plan for namenode 0.");
-                    return Optional.of(getRecoveryPhase(replacePlan, 0, NN_PHASE_NAME));
-                case 1:
-                    logger.info("Returning replacement plan for namenode 1.");
-                    return Optional.of(getRecoveryPhase(replacePlan, 1, NN_PHASE_NAME));
-                default:
-                    logger.error(
-                            "Encountered unexpected index: {}, falling back to default recovery plan manager.",
-                            stoppedPod.getPodInstance().getIndex());
-                    return Optional.empty();
+        if (podId.getType().equals("name")) {
+            if (podId.getIndex() <= 1) {
+                logger.info("Returning replacement plan for name node {}", podId.getIndex());
+                return Optional.of(getRecoveryPhase(replacePlan, podId.getIndex(), NN_PHASE_NAME));
+            } else {
+                logger.error("Encountered unexpected index: {}, falling back to default recovery plan manager",
+                        podId.getName());
+                return Optional.empty();
             }
         } else {
-            switch (stoppedPod.getPodInstance().getIndex()) {
-                case 0:
-                    logger.info("Returning replacement plan for journalnode 0.");
-                    return Optional.of(getRecoveryPhase(replacePlan, 0, JN_PHASE_NAME));
-                case 1:
-                    logger.info("Returning replacement plan for journalnode 1.");
-                    return Optional.of(getRecoveryPhase(replacePlan, 1, JN_PHASE_NAME));
-                case 2:
-                    logger.info("Returning replacement plan for journalnode 2.");
-                    return Optional.of(getRecoveryPhase(replacePlan, 2, JN_PHASE_NAME));
-                default:
-                    logger.error(
-                            "Encountered unexpected index: {}, falling back to default recovery plan manager.",
-                            stoppedPod.getPodInstance().getIndex());
-                    return Optional.empty();
+            if (podId.getIndex() <= 2) {
+                logger.info("Returning replacement plan for journal node {}", podId.getIndex());
+                return Optional.of(getRecoveryPhase(replacePlan, podId.getIndex(), JN_PHASE_NAME));
+            } else {
+                logger.error("Encountered unexpected index: {}, falling back to default recovery plan manager",
+                        podId.getName());
+                return Optional.empty();
             }
-
         }
     }
 
@@ -78,33 +66,25 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
         // Bootstrap
         Step inputBootstrapStep = inputPhase.getChildren().get(offset + 0);
-        PodInstanceRequirement bootstrapPodInstanceRequirement =
-                PodInstanceRequirement.newBuilder(
-                        inputBootstrapStep.start().get().getPodInstance(),
-                        inputBootstrapStep.start().get().getTasksToLaunch())
-                .recoveryType(RecoveryType.PERMANENT)
-                .build();
-        Step bootstrapStep =
-                new RecoveryStep(
-                        inputBootstrapStep.getName(),
-                        bootstrapPodInstanceRequirement,
-                        new UnconstrainedLaunchConstrainer(),
-                        stateStore);
+        Step bootstrapStep = new RecoveryStep(
+                inputBootstrapStep.getName(),
+                inputBootstrapStep.getPodInstance().get(),
+                PodLaunch.newBuilder(inputBootstrapStep.getPodLaunch().get())
+                        .recoveryType(RecoveryType.PERMANENT)
+                        .build(),
+                new UnconstrainedLaunchConstrainer(),
+                stateStore);
 
         // JournalNode or NameNode
         Step inputNodeStep = inputPhase.getChildren().get(offset + 1);
-        PodInstanceRequirement nameNodePodInstanceRequirement =
-                PodInstanceRequirement.newBuilder(
-                        inputNodeStep.start().get().getPodInstance(),
-                        inputNodeStep.start().get().getTasksToLaunch())
-                .recoveryType(RecoveryType.TRANSIENT)
-                .build();
-        Step nodeStep =
-                new RecoveryStep(
-                        inputNodeStep.getName(),
-                        nameNodePodInstanceRequirement,
-                        new UnconstrainedLaunchConstrainer(),
-                        stateStore);
+        Step nodeStep = new RecoveryStep(
+                inputNodeStep.getName(),
+                inputNodeStep.getPodInstance().get(),
+                PodLaunch.newBuilder(inputNodeStep.getPodLaunch().get())
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build(),
+                new UnconstrainedLaunchConstrainer(),
+                stateStore);
 
         return new DefaultPhase(
                 String.format(PHASE_NAME_TEMPLATE, phaseName),
@@ -113,13 +93,13 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 Collections.emptyList());
     }
 
-    private Phase getPhaseForNodeType(Plan inputPlan, String phaseName) {
+    private static Phase getPhaseForNodeType(Plan inputPlan, String phaseName) {
         Optional<Phase> phaseOptional = inputPlan.getChildren().stream()
                 .filter(phase -> phase.getName().equals(phaseName))
                 .findFirst();
 
         if (!phaseOptional.isPresent()) {
-            throw new RuntimeException(
+            throw new IllegalStateException(
                     String.format("Expected phase name %s does not exist in the service spec plan", phaseName));
         }
 

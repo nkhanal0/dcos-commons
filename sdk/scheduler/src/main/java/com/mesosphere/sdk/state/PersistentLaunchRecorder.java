@@ -2,8 +2,6 @@ package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -71,7 +69,7 @@ public class PersistentLaunchRecorder {
     Optional<PodInstance> getPodInstance(Protos.TaskInfo taskInfo) throws TaskException {
         Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
         return podSpecOptional.isPresent()
-                ? Optional.of(new DefaultPodInstance(podSpecOptional.get(), new TaskLabelReader(taskInfo).getIndex()))
+                ? Optional.of(TaskUtils.getPodInstance(podSpecOptional.get(), taskInfo))
                 : Optional.empty();
     }
 

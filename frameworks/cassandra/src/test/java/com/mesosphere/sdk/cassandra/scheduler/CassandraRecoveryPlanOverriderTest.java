@@ -3,7 +3,7 @@ package com.mesosphere.sdk.cassandra.scheduler;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -54,7 +54,7 @@ public class CassandraRecoveryPlanOverriderTest {
 
     @Test
     public void ovverrideNoOp() throws Exception {
-        PodInstanceRequirement podInstanceRequirement = getRestartPodInstanceRequirement(0);
+        PodLaunch podInstanceRequirement = getRestartPodInstanceRequirement(0);
         Optional<Phase> phase = planOverrider.override(podInstanceRequirement);
         Assert.assertFalse(phase.isPresent());
     }
@@ -67,7 +67,7 @@ public class CassandraRecoveryPlanOverriderTest {
                 stateStore,
                 taskName,
                 getFailedTaskStatus(taskName));
-        PodInstanceRequirement podInstanceRequirement = getReplacePodInstanceRequirement(nonSeedIndex);
+        PodLaunch podInstanceRequirement = getReplacePodInstanceRequirement(nonSeedIndex);
         Optional<Phase> phase = planOverrider.override(podInstanceRequirement);
         Assert.assertTrue(phase.isPresent());
         Assert.assertEquals(1, phase.get().getChildren().size());
@@ -84,7 +84,7 @@ public class CassandraRecoveryPlanOverriderTest {
                 stateStore,
                 taskName,
                 getFailedTaskStatus(taskName));
-        PodInstanceRequirement podInstanceRequirement = getReplacePodInstanceRequirement(nonSeedIndex);
+        PodLaunch podInstanceRequirement = getReplacePodInstanceRequirement(nonSeedIndex);
         Optional<Phase> phase = planOverrider.override(podInstanceRequirement);
         Assert.assertTrue(phase.isPresent());
         Assert.assertEquals(3, phase.get().getChildren().size());
@@ -112,18 +112,18 @@ public class CassandraRecoveryPlanOverriderTest {
                 .build();
     }
 
-    private PodInstanceRequirement getRestartPodInstanceRequirement(int nodeIndex) throws Exception {
+    private PodLaunch getRestartPodInstanceRequirement(int nodeIndex) throws Exception {
         return getPodInstanceRequirement(nodeIndex, RecoveryType.TRANSIENT);
     }
 
-    private PodInstanceRequirement getReplacePodInstanceRequirement(int nodeIndex) throws Exception {
+    private PodLaunch getReplacePodInstanceRequirement(int nodeIndex) throws Exception {
         return getPodInstanceRequirement(nodeIndex, RecoveryType.PERMANENT);
     }
 
-    private PodInstanceRequirement getPodInstanceRequirement(int nodeIndex, RecoveryType recoveryType) throws Exception {
+    private PodLaunch getPodInstanceRequirement(int nodeIndex, RecoveryType recoveryType) throws Exception {
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, nodeIndex);
-        return PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("server"))
+        return PodLaunch.newBuilder(podInstance, Arrays.asList("server"))
                 .recoveryType(recoveryType)
                 .build();
     }

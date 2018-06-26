@@ -4,6 +4,8 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
+import com.mesosphere.sdk.specification.PodInstance;
+
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -46,16 +48,19 @@ public class DecomissionCustomizer implements PlanCustomizer {
             Object lock = new Object();
 
             @Override
-            public Optional<PodInstanceRequirement> start() {
+            public void start() {
                 synchronized (lock) {
                     status = Status.COMPLETE;
                 }
+            }
 
+            @Override
+            public Optional<PodInstance> getPodInstance() {
                 return Optional.empty();
             }
 
             @Override
-            public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+            public Optional<PodLaunch> getPodLaunch() {
                 return Optional.empty();
             }
 

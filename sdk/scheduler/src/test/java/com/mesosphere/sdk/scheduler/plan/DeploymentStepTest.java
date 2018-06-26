@@ -191,11 +191,11 @@ public class DeploymentStepTest {
                         TASK_NAME_1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstance podInstance = new PodInstance(podSpec, 0);
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                PodLaunch.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 mockStateStore,
                 Optional.empty());
 
@@ -232,14 +232,16 @@ public class DeploymentStepTest {
                         taskName1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstance podInstance = new PodInstance(podSpec, 0);
 
-        Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName0));
-        Protos.TaskID taskId1 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName1));
+        Protos.TaskID taskId0 = CommonIdUtils.toTaskId(
+                TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance.getId(), taskName0));
+        Protos.TaskID taskId1 = CommonIdUtils.toTaskId(
+                TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance.getId(), taskName1));
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                PodLaunch.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 mockStateStore,
                 Optional.empty());
 
@@ -297,7 +299,7 @@ public class DeploymentStepTest {
     private DeploymentStep getPendingStep() {
         return new DeploymentStep(
                 TEST_STEP_NAME,
-                PodInstanceRequirement.newBuilder(mockPodInstance, TaskUtils.getTaskNames(mockPodInstance)).build(),
+                PodLaunch.newBuilder(mockPodInstance, TaskUtils.getTaskNames(mockPodInstance)).build(),
                 mockStateStore,
                 Optional.empty());
     }

@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Utilities relating to constructing {@link PodInstanceRequirement}s.
+ * Utilities relating to constructing {@link PodLaunch}s.
  */
 public class PodInstanceRequirementTestUtils {
 
@@ -17,35 +17,35 @@ public class PodInstanceRequirementTestUtils {
         // do not instantiate
     }
 
-    public static PodInstanceRequirement getCpuRequirement(double value) {
+    public static PodLaunch getCpuRequirement(double value) {
         return getCpuRequirement(value, 0);
     }
 
-    public static PodInstanceRequirement getCpuRequirement(double value, String preReservedRole) {
+    public static PodLaunch getCpuRequirement(double value, String preReservedRole) {
         return getRequirement(getCpuResourceSet(value, preReservedRole), 0);
     }
 
-    public static PodInstanceRequirement getCpuRequirement(double value, int index) {
+    public static PodLaunch getCpuRequirement(double value, int index) {
         return getRequirement(getCpuResourceSet(value), index);
     }
 
-    public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize) {
+    public static PodLaunch getRootVolumeRequirement(double cpus, double diskSize) {
         return getRootVolumeRequirement(cpus, diskSize, 0);
     }
 
-    public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize) {
+    public static PodLaunch getMountVolumeRequirement(double cpus, double diskSize) {
         return getMountVolumeRequirement(cpus, diskSize, 0);
     }
 
-    public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize, int index) {
+    public static PodLaunch getRootVolumeRequirement(double cpus, double diskSize, int index) {
         return getRequirement(getRootVolumeResourceSet(cpus, diskSize), index);
     }
 
-    public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize, int index) {
+    public static PodLaunch getMountVolumeRequirement(double cpus, double diskSize, int index) {
         return getRequirement(getMountVolumeResourceSet(cpus, diskSize), index);
     }
 
-    public static PodInstanceRequirement getPortRequirement(int... ports) {
+    public static PodLaunch getPortRequirement(int... ports) {
         Map<String, Integer> envPorts = new HashMap<>();
         for (int i = 0; i < ports.length; ++i) {
             // Default env: "TEST_PORT_NAME_<portnum>"
@@ -54,11 +54,11 @@ public class PodInstanceRequirementTestUtils {
         return getPortRequirement(envPorts);
     }
 
-    public static PodInstanceRequirement getPortRequirement(Map<String, Integer> envPorts) {
+    public static PodLaunch getPortRequirement(Map<String, Integer> envPorts) {
         return getRequirement(getPortsResourceSet(envPorts), 0);
     }
 
-    public static PodInstanceRequirement getVIPRequirement(int vipPort, int taskPort) {
+    public static PodLaunch getVIPRequirement(int vipPort, int taskPort) {
         return getRequirement(getVIPResourceSet(Collections.singletonMap(vipPort, taskPort)), 0);
     }
 
@@ -145,11 +145,11 @@ public class PodInstanceRequirementTestUtils {
 
     }
 
-    public static PodInstanceRequirement getRequirement(ResourceSet resourceSet, int index) {
+    public static PodLaunch getRequirement(ResourceSet resourceSet, int index) {
         return getRequirement(resourceSet, TestConstants.POD_TYPE, index);
     }
 
-    public static PodInstanceRequirement getRequirement(ResourceSet resourceSet, String type, int index) {
+    public static PodLaunch getRequirement(ResourceSet resourceSet, String type, int index) {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
@@ -164,16 +164,16 @@ public class PodInstanceRequirementTestUtils {
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
-        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+        PodInstance podInstance = new PodInstance(podSpec, index);
 
         List<String> taskNames = podInstance.getPod().getTasks().stream()
                 .map(ts -> ts.getName())
                 .collect(Collectors.toList());
 
-        return PodInstanceRequirement.newBuilder(podInstance, taskNames).build();
+        return PodLaunch.newBuilder(podInstance, taskNames).build();
     }
 
-    public static PodInstanceRequirement getExecutorRequirement(
+    public static PodLaunch getExecutorRequirement(
             ResourceSet taskResources,
             Collection<VolumeSpec> executorVolumes,
             String type,
@@ -192,12 +192,12 @@ public class PodInstanceRequirementTestUtils {
                 .volumes(executorVolumes)
                 .build();
 
-        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+        PodInstance podInstance = new PodInstance(podSpec, index);
 
         List<String> taskNames = podInstance.getPod().getTasks().stream()
                 .map(ts -> ts.getName())
                 .collect(Collectors.toList());
 
-        return PodInstanceRequirement.newBuilder(podInstance, taskNames).build();
+        return PodLaunch.newBuilder(podInstance, taskNames).build();
     }
 }

@@ -6,8 +6,10 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifact;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.scheduler.plan.AbstractStep;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.specification.PodInstance;
+
 import org.apache.mesos.Protos;
 
 import java.io.IOException;
@@ -31,7 +33,7 @@ public class TLSCleanupStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         logger.info("Cleaning up TLS resources in namespace {}...", namespace);
 
         try {
@@ -52,12 +54,15 @@ public class TLSCleanupStep extends AbstractStep {
             logger.error(String.format("Failed to clean up secrets in namespace %s", namespace), e);
             setStatus(Status.ERROR);
         }
+    }
 
+    @Override
+    public Optional<PodInstance> getPodInstance() {
         return Optional.empty();
     }
 
     @Override
-    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+    public Optional<PodLaunch> getPodLaunch() {
         return Optional.empty();
     }
 

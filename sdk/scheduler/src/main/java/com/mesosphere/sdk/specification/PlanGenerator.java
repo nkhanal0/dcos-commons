@@ -103,7 +103,7 @@ public class PlanGenerator {
             List<String> allTaskNames = podSpec.getTasks().stream()
                     .map(taskSpec -> taskSpec.getName())
                     .collect(Collectors.toList());
-            steps.add(generateStep(new DefaultPodInstance(podSpec, i), allTaskNames));
+            steps.add(generateStep(new PodInstance(podSpec, i), allTaskNames));
         }
         return new DefaultPhase(
                 phaseName, steps, getPhaseStrategyGenerator(strategy).generate(steps), Collections.emptyList());
@@ -130,7 +130,7 @@ public class PlanGenerator {
             // Add steps to the sequence, where each step may launch one or more tasks. Because the phase strategy
             // is serial, this is all we need to do. For example, [[a, b], c] => step[a, b], step[c]
             for (List<String> taskNames : taskLists) {
-                steps.add(generateStep(new DefaultPodInstance(podSpec, i), taskNames));
+                steps.add(generateStep(new PodInstance(podSpec, i), taskNames));
             }
         }
         return new DefaultPhase(
@@ -160,7 +160,7 @@ public class PlanGenerator {
                 }
             }
             for (List<String> taskNames : taskLists) {
-                Step step = generateStep(new DefaultPodInstance(podSpec, i), taskNames);
+                Step step = generateStep(new PodInstance(podSpec, i), taskNames);
                 if (podSteps.isEmpty()) {
                     // If there are no parent steps, we should at least ensure that this step is listed in the strategy.
                     dependencies.addElement(step);

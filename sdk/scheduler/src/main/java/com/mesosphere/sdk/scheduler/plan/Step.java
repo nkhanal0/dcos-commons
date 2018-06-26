@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.specification.PodInstance;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -14,29 +15,34 @@ import java.util.Optional;
  */
 public interface Step extends Element, Interruptible {
     /**
-     * Starts the Step, whose {@link Status} should be {@link Status#PENDING}. Returns an
-     * {@link PodInstanceRequirement}, or an empty Optional if obtaining/updating resource requirements are not
-     * applicable to the Step. This will continue to be called for as long as {@link Element#isPending()} returns
-     * true.
+     * Starts the Step, whose {@link Status} should be {@link Status#PENDING}.
+     * This will continue to be called for as long as {@link Element#isPending()} returns {@code true}.
      *
      * @see {@link #updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which returns the outcome of
-     *      the {@link PodInstanceRequirement}
+     *      the {@link PodLaunch}
      */
-    Optional<PodInstanceRequirement> start();
+    void start();
 
     /**
      * Return the pod instance that this Step intends to work on.
      *
      * @return The information about the pod that this Step intends to work on, Optional.empty() otherwise.
      */
-    Optional<PodInstanceRequirement> getPodInstanceRequirement();
+    Optional<PodInstance> getPodInstance();
 
     /**
-     * Notifies the Step whether the {@link PodInstanceRequirement} previously returned by
+     * Return the pod launch operation that this Step intends to work on.
+     *
+     * @return The information about the pod that this Step intends to work on, Optional.empty() otherwise.
+     */
+    Optional<PodLaunch> getPodLaunch();
+
+    /**
+     * Notifies the Step whether the {@link PodLaunch} previously returned by
      * {@link #start()} has been successfully accepted/fulfilled. The {@code recommendations} param is
      * empty when no offers matching the requirement previously returned by {@link #start()}
      * could be found. This is only called if {@link #start()} returned a non-empty
-     * {@link PodInstanceRequirement}.
+     * {@link PodLaunch}.
      */
     void updateOfferStatus(Collection<OfferRecommendation> recommendations);
 

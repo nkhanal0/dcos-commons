@@ -46,7 +46,7 @@ public class DefaultPlanManager implements PlanManager {
     }
 
     @Override
-    public Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
+    public Collection<? extends Step> getCandidates(Collection<PodLaunch> dirtyAssets) {
         return plan.getCandidates(dirtyAssets);
     }
 
@@ -56,7 +56,7 @@ public class DefaultPlanManager implements PlanManager {
     }
 
     @Override
-    public Set<PodInstanceRequirement> getDirtyAssets() {
+    public Set<PodLaunch> getDirtyAssets() {
         return PlanUtils.getDirtyAssets(plan);
     }
 }

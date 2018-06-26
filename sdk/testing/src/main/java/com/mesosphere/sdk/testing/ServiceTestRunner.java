@@ -13,7 +13,6 @@ import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -424,7 +423,7 @@ public class ServiceTestRunner {
             ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) {
         Collection<ServiceTestResult.TaskConfig> taskConfigs = new ArrayList<>();
         for (PodSpec podSpec : serviceSpec.getPods()) {
-            PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+            PodInstance podInstance = new PodInstance(podSpec, 0);
             Map<String, String> customEnv = customPodEnvs.get(podSpec.getType());
             for (TaskSpec taskSpec : podSpec.getTasks()) {
                 Map<String, String> taskEnv = getTaskEnv(serviceSpec, podInstance, taskSpec, schedulerConfig);

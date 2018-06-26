@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.VolumeSpec;
@@ -23,7 +23,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
-        PodInstanceRequirement podInstanceRequirement =
+        PodLaunch podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
@@ -76,7 +76,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
-        PodInstanceRequirement podInstanceRequirement =
+        PodLaunch podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(

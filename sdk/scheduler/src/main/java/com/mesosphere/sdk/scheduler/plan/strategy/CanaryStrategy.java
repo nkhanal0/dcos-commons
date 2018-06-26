@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.Collection;
@@ -72,7 +72,7 @@ public class CanaryStrategy implements Strategy<Step> {
     }
 
     @Override
-    public Collection<Step> getCandidates(Collection<Step> steps, Collection<PodInstanceRequirement> dirtyAssets) {
+    public Collection<Step> getCandidates(Collection<Step> steps, Collection<PodLaunch> dirtyAssets) {
         if (getNextCanaryStep() != null) {
             // Still in canary. Only return subset of canary steps which are now eligible due to proceed() calls.
             return canarySteps.stream()

@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -35,7 +35,7 @@ public class WorkSetTracker {
 
     /**
      * Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
-     * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodInstanceRequirement}s) we
+     * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodLaunch}s) we
      * assume that the offers we've declined forever may be useful to that work, and so we revive offers.
      *
      * Pseudo-code algorithm:
@@ -100,11 +100,11 @@ public class WorkSetTracker {
      * offers is necessary.
      */
     private static class WorkItem {
-        private final Optional<PodInstanceRequirement> podInstanceRequirement;
+        private final Optional<PodLaunch> podLaunch;
         private final String name;
 
         private WorkItem(Step step) {
-            this.podInstanceRequirement = step.getPodInstanceRequirement();
+            this.podLaunch = step.getPodLaunch();
             this.name = step.getName();
         }
 
@@ -120,11 +120,7 @@ public class WorkSetTracker {
 
         @Override
         public String toString() {
-            return String.format("%s [%s]",
-                    name,
-                    podInstanceRequirement.isPresent() ?
-                            podInstanceRequirement.get().getRecoveryType() :
-                            "N/A");
+            return String.format("%s [%s]", name, podLaunch.isPresent() ? podLaunch.get().getRecoveryType() : "N/A");
         }
     }
 }

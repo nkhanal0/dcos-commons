@@ -41,10 +41,10 @@ public class PlanUtilsTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        PodInstance podInstance = new DefaultPodInstance(POD_SPEC, 0);
+        PodInstance podInstance = new PodInstance(POD_SPEC, 0);
         step = new DeploymentStep(
                 TEST_STEP_NAME,
-                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                PodLaunch.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 mockStateStore,
                 Optional.empty());
     }
@@ -114,7 +114,7 @@ public class PlanUtilsTest {
 
     @Test
     public void testStepMatchingDirtyAsset() {
-        Collection<PodInstanceRequirement> dirtyAssets = Arrays.asList(step.getPodInstanceRequirement().get());
+        Collection<PodLaunch> dirtyAssets = Arrays.asList(step.getPodInstanceRequirement().get());
         Assert.assertFalse(PlanUtils.isEligible(step, dirtyAssets));
     }
 

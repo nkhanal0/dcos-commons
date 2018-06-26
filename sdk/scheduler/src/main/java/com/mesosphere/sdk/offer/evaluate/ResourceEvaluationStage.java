@@ -15,7 +15,7 @@ import java.util.Optional;
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
- * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
+ * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodLaunch},
  * ensuring that it contains a sufficient amount or value of the supplied {@link Resource}, and creating a
  * {@link ReserveOfferRecommendation} or {@link UnreserveOfferRecommendation} where necessary.
  */

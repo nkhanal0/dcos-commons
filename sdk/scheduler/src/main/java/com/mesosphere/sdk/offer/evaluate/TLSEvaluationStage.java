@@ -97,7 +97,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                 new CertificateNamesGenerator(serviceName, taskSpec, podInfoBuilder.getPodInstance(), schedulerConfig);
         TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
                 namespace,
-                TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
+                TaskSpec.getInstanceName(podInfoBuilder.getPodInstance().getId(), taskName),
                 certificateNamesGenerator.getSANsHash());
         for (TransportEncryptionSpec transportEncryptionSpec : taskSpec.getTransportEncryption()) {
             try {

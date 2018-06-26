@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.testutils.*;
@@ -30,7 +30,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         stage = new LaunchEvaluationStage(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME, true);
         offer = OfferTestUtils.getOffer(offeredResource);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
         podInfoBuilder = new PodInfoBuilder(
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,

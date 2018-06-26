@@ -3,8 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -38,8 +37,8 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         podSpec = DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(placementRule)
                 .build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(
+        PodInstance podInstance = new PodInstance(podSpec, 0);
+        PodLaunch podInstanceRequirement = PodLaunch.newBuilder(
                 podInstance,
                 Arrays.asList(TestConstants.TASK_NAME))
                 .build();
@@ -57,8 +56,8 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         podSpec = DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(placementRule)
                 .build();
-        podInstance = new DefaultPodInstance(podSpec, 0);
-        podInstanceRequirement = PodInstanceRequirement.newBuilder(
+        podInstance = new PodInstance(podSpec, 0);
+        podInstanceRequirement = PodLaunch.newBuilder(
                 podInstance,
                 Arrays.asList(TestConstants.TASK_NAME))
                 .build();
@@ -83,8 +82,8 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         podSpec = DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(placementRule)
                 .build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(
+        PodInstance podInstance = new PodInstance(podSpec, 0);
+        PodLaunch podInstanceRequirement = PodLaunch.newBuilder(
                 podInstance,
                 Arrays.asList(TestConstants.TASK_NAME))
                 .build();
@@ -102,8 +101,8 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         podSpec = DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(placementRule)
                 .build();
-        podInstance = new DefaultPodInstance(podSpec, 0);
-        podInstanceRequirement = PodInstanceRequirement.newBuilder(
+        podInstance = new PodInstance(podSpec, 0);
+        podInstanceRequirement = PodLaunch.newBuilder(
                 podInstance,
                 Arrays.asList(TestConstants.TASK_NAME))
                 .build();

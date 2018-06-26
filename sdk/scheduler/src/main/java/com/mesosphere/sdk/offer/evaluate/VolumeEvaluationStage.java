@@ -12,7 +12,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
- * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
+ * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodLaunch},
  * ensuring that it contains an appropriately-sized volume, and creating any necessary instances of
  * {@link com.mesosphere.sdk.offer.ReserveOfferRecommendation} and
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.

@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -23,7 +22,7 @@ public class HostnameRuleTest {
 
     private static final PodSpec podSpec =
             DefaultPodSpec.newBuilder("type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
-    private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
+    private static final PodInstance POD_INSTANCE = new PodInstance(podSpec, 0);
     private static final String HOST_1 = "host-1-uuid";
     private static final String HOST_2 = "host-2-uuid";
     private static final String HOST_3 = "host-3-uuid";

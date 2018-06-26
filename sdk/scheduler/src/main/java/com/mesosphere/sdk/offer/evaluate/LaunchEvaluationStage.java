@@ -38,8 +38,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         // Store metadata in the TaskInfo for later access by placement constraints:
         TaskLabelWriter writer = new TaskLabelWriter(taskBuilder);
         writer.setOfferAttributes(offer)
-                .setType(podInfoBuilder.getType())
-                .setIndex(podInfoBuilder.getIndex())
+                .setId(podInfoBuilder.getPodId())
                 .setHostname(offer);
 
         if (offer.hasDomain() && offer.getDomain().hasFaultDomain()) {

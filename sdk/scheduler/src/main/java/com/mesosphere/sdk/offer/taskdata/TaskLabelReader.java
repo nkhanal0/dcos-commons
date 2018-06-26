@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.specification.PodId;
+
 import org.apache.mesos.Protos.*;
 
 import java.util.ArrayList;
@@ -30,22 +32,14 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns the task type string, which was embedded in the task.
+     * Returns the pod ID, which was embedded in the task.
      *
-     * @throws TaskException if the type could not be found.
+     * @throws TaskException if the pod type or pod index labels could not be found.
      */
-    public String getType() throws TaskException {
-        return reader.getOrThrow(LabelConstants.TASK_TYPE_LABEL);
-    }
-
-    /**
-     * Returns the pod instance index of the task, or throws {@link TaskException} if no index data was found.
-     *
-     * @throws TaskException if the index data wasn't found
-     * @throws NumberFormatException if parsing the index as an integer failed
-     */
-    public int getIndex() throws TaskException, NumberFormatException {
-        return Integer.parseInt(reader.getOrThrow(LabelConstants.TASK_INDEX_LABEL));
+    public PodId getPodId() throws TaskException {
+        return new PodId(
+                reader.getOrThrow(LabelConstants.TASK_TYPE_LABEL),
+                Integer.parseInt(reader.getOrThrow(LabelConstants.TASK_INDEX_LABEL)));
     }
 
     /**

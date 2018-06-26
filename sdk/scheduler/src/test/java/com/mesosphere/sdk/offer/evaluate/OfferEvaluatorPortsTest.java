@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -31,7 +31,7 @@ import java.util.Map;
 public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveStaticPort() throws Exception {
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(555, 555);
 
         List<OfferRecommendation> recommendations =
@@ -52,7 +52,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveStaticPortFailure() throws Exception {
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(666, 666);
 
         List<OfferRecommendation> recommendations =
@@ -63,7 +63,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchExpectedStaticPort() throws Exception {
         // Launch for the first time: get port 555
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement,
                 ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
@@ -90,7 +90,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchExpectedDynamicPort() throws Exception {
         // Launch for the first time: get port 10000
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(0);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(0);
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10000)).get(0);
         String resourceId = getResourceId(reserveResource);
@@ -116,7 +116,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveTaskDynamicPort() throws Exception {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(0);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(0);
 
         List<OfferRecommendation> recommendations =
                 evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getCompleteOffers(offeredPorts));
@@ -201,7 +201,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchExpectedMultiplePorts() throws Exception {
         // Launch for the first time: get ports 10000,10001
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001);
         List<Resource> reserveResources = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10001));
         Assert.assertEquals(reserveResources.toString(), 5, reserveResources.size());

@@ -7,8 +7,7 @@ import com.mesosphere.sdk.offer.evaluate.security.TLSArtifact;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -58,7 +57,7 @@ public class TLSEvaluationStageTest {
                 mockSchedulerConfig);
     }
 
-    private static PodInstanceRequirement getRequirementWithTransportEncryption(
+    private static PodLaunch getRequirementWithTransportEncryption(
             ResourceSet resourceSet, String type, int index,
             Collection<TransportEncryptionSpec> transportEncryptionSpecs) {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
@@ -76,16 +75,16 @@ public class TLSEvaluationStageTest {
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
-        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+        PodInstance podInstance = new PodInstance(podSpec, index);
         List<String> taskNames = podInstance.getPod().getTasks().stream()
                 .map(ts -> ts.getName())
                 .collect(Collectors.toList());
-        return PodInstanceRequirement.newBuilder(podInstance, taskNames).build();
+        return PodLaunch.newBuilder(podInstance, taskNames).build();
     }
 
     private PodInfoBuilder getPodInfoBuilderForTransportEncryption(
             Collection<TransportEncryptionSpec> transportEncryptionSpecs) throws InvalidRequirementException {
-        PodInstanceRequirement podInstanceRequirement = getRequirementWithTransportEncryption(
+        PodLaunch podInstanceRequirement = getRequirementWithTransportEncryption(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 TestConstants.POD_TYPE,
                 0,

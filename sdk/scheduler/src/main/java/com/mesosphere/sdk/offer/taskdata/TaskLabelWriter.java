@@ -14,6 +14,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
 import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.specification.PodId;
 
 /**
  * Provides write access to task labels which are (only) written by the Scheduler.
@@ -47,19 +48,11 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Stores the provided task type string. Any existing task type is overwritten.
+     * Stores the provided pod ID, as a task type and task index. Any existing values are overwritten.
      */
-    public TaskLabelWriter setType(String taskType) {
-        writer.put(LabelConstants.TASK_TYPE_LABEL, taskType);
-        return this;
-    }
-
-
-    /**
-     * Assigns the pod instance index to the provided task. Any existing index is overwritten.
-     */
-    public TaskLabelWriter setIndex(int index) {
-        writer.put(LabelConstants.TASK_INDEX_LABEL, String.valueOf(index));
+    public TaskLabelWriter setId(PodId podId) {
+        writer.put(LabelConstants.TASK_TYPE_LABEL, podId.getType());
+        writer.put(LabelConstants.TASK_INDEX_LABEL, String.valueOf(podId.getIndex()));
         return this;
     }
 

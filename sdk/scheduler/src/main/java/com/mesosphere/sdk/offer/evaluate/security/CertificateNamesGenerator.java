@@ -51,7 +51,8 @@ public class CertificateNamesGenerator {
         // Task can specify its own service discovery name
         if (taskSpec.getDiscovery().isPresent() && taskSpec.getDiscovery().get().getPrefix().isPresent()) {
             this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName,
-                    String.format("%s-%d", taskSpec.getDiscovery().get().getPrefix().get(), podInstance.getIndex()),
+                    String.format("%s-%d",
+                            taskSpec.getDiscovery().get().getPrefix().get(), podInstance.getId().getIndex()),
                     schedulerConfig);
         } else {
             this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName, this.taskInstanceName, schedulerConfig);

@@ -23,7 +23,7 @@ public class PlanUtils {
      * @param asset The asset of interest.
      * @param dirtyAssets Other assets which may conflict with the {@code asset}
      */
-    public static boolean assetConflicts(PodInstanceRequirement asset, Collection<PodInstanceRequirement> dirtyAssets) {
+    public static boolean assetConflicts(PodLaunch asset, Collection<PodLaunch> dirtyAssets) {
         return dirtyAssets.stream()
                 .filter(dirtyAsset -> asset.conflictsWith(dirtyAsset))
                 .count() > 0;
@@ -33,16 +33,14 @@ public class PlanUtils {
         return plans.stream()
                 .flatMap(plan -> plan.getChildren().stream())
                 .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
-                .flatMap(podInstanceRequirement ->
-                        TaskUtils.getTaskNames(
-                                podInstanceRequirement.getPodInstance(),
-                                podInstanceRequirement.getTasksToLaunch()).stream())
+                .filter(step -> step.getPodInstance().isPresent() && step.getPodLaunch().isPresent())
+                .flatMap(step -> TaskUtils.getTaskNames(
+                        step.getPodInstance().get(),
+                        step.getPodLaunch().get().getTasksToLaunch()).stream())
                 .collect(Collectors.toSet());
     }
 
-    public static Set<PodInstanceRequirement> getDirtyAssets(Plan plan) {
+    public static Set<PodLaunch> getDirtyAssets(Plan plan) {
         if (plan == null) {
             return Collections.emptySet();
         }
@@ -50,8 +48,8 @@ public class PlanUtils {
         return plan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
                 .filter(step -> (step.isPrepared() || step.isStarting())
-                        && step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
+                        && step.getPodLaunch().isPresent())
+                .map(step -> step.getPodLaunch().get())
                 .collect(Collectors.toSet());
     }
 
@@ -62,7 +60,7 @@ public class PlanUtils {
      * @param dirtyAssets list of current dirty assets which are already being worked on
      * @return whether this element may proceed with work
      */
-    public static boolean isEligible(Element element, Collection<PodInstanceRequirement> dirtyAssets) {
+    public static boolean isEligible(Element element, Collection<PodLaunch> dirtyAssets) {
         if (element.isComplete() || element.hasErrors()) {
             return false;
         }
@@ -70,9 +68,8 @@ public class PlanUtils {
             return false;
         }
         if (element instanceof Step) {
-            Optional<PodInstanceRequirement> podInstanceRequirement = ((Step) element).getPodInstanceRequirement();
-            if (podInstanceRequirement.isPresent()
-                    && PlanUtils.assetConflicts(podInstanceRequirement.get(), dirtyAssets)) {
+            Optional<PodLaunch> podLaunch = ((Step) element).getPodLaunch();
+            if (podLaunch.isPresent() && PlanUtils.assetConflicts(podLaunch.get(), dirtyAssets)) {
                 return false;
             }
         }

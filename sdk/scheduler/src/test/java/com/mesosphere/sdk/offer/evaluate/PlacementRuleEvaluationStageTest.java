@@ -5,8 +5,7 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AgentRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -34,9 +33,9 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
         PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
         DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(rule);
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstance podInstance = new PodInstance(podSpec, 0);
         List<String> taskNames = TaskUtils.getTaskNames(podInstance);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement
+        PodLaunch podInstanceRequirement = PodLaunch
                 .newBuilder(podInstance, taskNames)
                 .build();
 
@@ -71,9 +70,9 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
         PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
         DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(rule);
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstance podInstance = new PodInstance(podSpec, 0);
         List<String> taskNames = TaskUtils.getTaskNames(podInstance);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement
+        PodLaunch podInstanceRequirement = PodLaunch
                 .newBuilder(podInstance, taskNames)
                 .build();
 

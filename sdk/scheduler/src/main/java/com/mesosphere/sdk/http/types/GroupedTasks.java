@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -47,7 +48,7 @@ public class GroupedTasks {
     public Optional<Collection<TaskInfoAndStatus>> getPodInstanceTasks(String podInstanceName) {
         for (Map.Entry<String, Map<Integer, List<TaskInfoAndStatus>>> pod : byPodTypeAndIndex.entrySet()) {
             for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance : pod.getValue().entrySet()) {
-                if (PodInstance.getName(pod.getKey(), podInstance.getKey()).equals(podInstanceName)) {
+                if (PodId.getName(pod.getKey(), podInstance.getKey()).equals(podInstanceName)) {
                     return Optional.of(podInstance.getValue());
                 }
             }
@@ -65,18 +66,17 @@ public class GroupedTasks {
                     taskInfo, Optional.ofNullable(taskStatusesById.get(taskInfo.getTaskId())));
             TaskLabelReader labels = new TaskLabelReader(taskInfo);
             try {
-                String podType = labels.getType();
-                Map<Integer, List<TaskInfoAndStatus>> podInstances = byPodTypeAndIndex.get(podType);
+                PodId podId = labels.getPodId();
+                Map<Integer, List<TaskInfoAndStatus>> podInstances = byPodTypeAndIndex.get(podId.getType());
                 if (podInstances == null) {
                     podInstances = new TreeMap<>();
-                    byPodTypeAndIndex.put(podType, podInstances);
+                    byPodTypeAndIndex.put(podId.getType(), podInstances);
                 }
 
-                int podIndex = labels.getIndex();
-                List<TaskInfoAndStatus> tasks = podInstances.get(podIndex);
+                List<TaskInfoAndStatus> tasks = podInstances.get(podId.getIndex());
                 if (tasks == null) {
                     tasks = new ArrayList<>();
-                    podInstances.put(podIndex, tasks);
+                    podInstances.put(podId.getIndex(), tasks);
                 }
 
                 tasks.add(taskInfoAndStatus);

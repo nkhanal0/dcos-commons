@@ -5,7 +5,7 @@ import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
@@ -103,7 +103,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
         Resource offeredDiskResource = ResourceTestUtils.getUnreservedDisk(2000);
 
-        PodInstanceRequirement podInstanceRequirement =
+        PodLaunch podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
@@ -225,7 +225,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
         Resource offeredDiskResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
-        PodInstanceRequirement podInstanceRequirement =
+        PodLaunch podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1500);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
@@ -304,7 +304,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         2.0,
                         TestConstants.CONTAINER_PATH + "-b")
                 .build();
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
 
         Resource offeredDisk = ResourceTestUtils.getUnreservedDisk(3);
         Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(1.0);
@@ -353,7 +353,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
                 .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B")
                 .build();
-        PodInstanceRequirement podInstanceRequirement =
+        PodLaunch podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResource));
 
@@ -390,7 +390,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getUnreservedCpus(1.0));
 
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
                         new DefaultVolumeSpec(
@@ -449,7 +449,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getUnreservedCpus(1.0));
 
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
+        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
                         new DefaultVolumeSpec(

@@ -3,8 +3,9 @@ package com.mesosphere.sdk.scheduler.recovery;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -22,29 +23,29 @@ public class RecoveryStep extends DeploymentStep {
 
     public RecoveryStep(
             String name,
-            PodInstanceRequirement podInstanceRequirement,
+            PodInstance podInstance,
+            PodLaunch podLaunch,
             LaunchConstrainer launchConstrainer,
             StateStore stateStore) {
-        this(name, podInstanceRequirement, launchConstrainer, stateStore, Optional.empty());
+        this(name, podInstance, podLaunch, launchConstrainer, stateStore, Optional.empty());
     }
 
     public RecoveryStep(
             String name,
-            PodInstanceRequirement podInstanceRequirement,
+            PodInstance podInstance,
+            PodLaunch podLaunch,
             LaunchConstrainer launchConstrainer,
             StateStore stateStore,
             Optional<String> namespace) {
-        super(name, podInstanceRequirement, stateStore, namespace);
+        super(name, podInstance, podLaunch, stateStore, namespace);
         this.launchConstrainer = launchConstrainer;
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-            FailureUtils.setPermanentlyFailed(stateStore, podInstanceRequirement.getPodInstance());
+    public void start() {
+        if (podLaunch.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+            FailureUtils.setPermanentlyFailed(stateStore, podInstance);
         }
-
-        return super.start();
     }
 
     @Override
@@ -58,7 +59,7 @@ public class RecoveryStep extends DeploymentStep {
     }
 
     public RecoveryType getRecoveryType() {
-        return podInstanceRequirement.getRecoveryType();
+        return podLaunch.getRecoveryType();
     }
 
     @Override

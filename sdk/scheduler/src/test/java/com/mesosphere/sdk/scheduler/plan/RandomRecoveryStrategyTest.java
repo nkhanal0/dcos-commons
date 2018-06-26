@@ -20,8 +20,8 @@ import static org.mockito.Mockito.when;
 public class RandomRecoveryStrategyTest {
     @Mock private Step pendingStep;
     @Mock private Step completeStep;
-    @Mock private PodInstanceRequirement podInstancePending;
-    @Mock private PodInstanceRequirement podInstanceComplete;
+    @Mock private PodLaunch podInstancePending;
+    @Mock private PodLaunch podInstanceComplete;
 
     @Before
     public void beforeEach() {

@@ -39,16 +39,15 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
     }
 
     @Override
-    public Optional<Phase> override(PodInstanceRequirement stoppedPod) {
-        if (!stoppedPod.getPodInstance().getPod().getType().equals("node")
+    public Optional<Phase> override(PodLaunch stoppedPod) {
+        if (!stoppedPod.getId().getType().equals("node")
                 || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
             logger.info("No overrides necessary. Pod is not a node or it isn't a permanent failure.");
             return Optional.empty();
         }
 
-        int index = stoppedPod.getPodInstance().getIndex();
-        logger.info(String.format("Returning replacement plan for node %d.", index));
-        return Optional.ofNullable(getNodeRecoveryPhase(replaceNodePlan, index));
+        logger.info("Returning replacement plan for {}", stoppedPod.getId().getName());
+        return Optional.ofNullable(getNodeRecoveryPhase(replaceNodePlan, stoppedPod.getId().getIndex()));
     }
 
     private Phase getNodeRecoveryPhase(Plan inputPlan, int index) {
@@ -56,7 +55,7 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Step inputLaunchStep = inputPhase.getChildren().get(index);
 
         // Dig all the way down into the command, so we can append the replace_address option to it.
-        PodInstance podInstance = inputLaunchStep.start().get().getPodInstance();
+        PodInstance podInstance = inputLaunchStep.getPodInstance().get();
         PodSpec podSpec = podInstance.getPod();
         TaskSpec taskSpec = podSpec.getTasks().stream().filter(t -> t.getName().equals("server")).findFirst().get();
         CommandSpec command = taskSpec.getCommand().get();
@@ -90,18 +89,17 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
                     return t;
                 })
                 .collect(Collectors.toList());
-        PodSpec newPodSpec = DefaultPodSpec.newBuilder(podSpec).tasks(tasks).build();
-        PodInstance newPodInstance = new DefaultPodInstance(newPodSpec, index);
 
-        PodInstanceRequirement replacePodInstanceRequirement =
-                PodInstanceRequirement.newBuilder(
-                    newPodInstance, inputLaunchStep.getPodInstanceRequirement().get().getTasksToLaunch())
+        PodLaunch replacePodLaunch = PodLaunch.newBuilder(
+                new PodInstance(DefaultPodSpec.newBuilder(podSpec).tasks(tasks).build(), index),
+                inputLaunchStep.getPodLaunch().get().getTasksToLaunch())
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
 
         Step replaceStep = new RecoveryStep(
                 inputLaunchStep.getName(),
-                replacePodInstanceRequirement,
+                inputLaunchStep.getPodInstance().get(),
+                replacePodLaunch,
                 new UnconstrainedLaunchConstrainer(),
                 stateStore);
 
@@ -109,25 +107,24 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
         steps.add(replaceStep);
 
         // Restart all other nodes if replacing a seed node to refresh IP resolution
-        int replaceIndex = replaceStep.getPodInstanceRequirement().get().getPodInstance().getIndex();
+        int replaceIndex = replaceStep.getPodInstance().get().getId().getIndex();
         if (CassandraSeedUtils.isSeedNode(replaceIndex)) {
-            logger.info(
-                    "Scheduling restart of all nodes other than 'node-{}' to refresh seed node address.",
-                    replaceIndex);
+            logger.info("Scheduling restart of all nodes other than '{}' to refresh seed node address.",
+                    replaceStep.getPodInstance().get().getId());
 
             List<Step> restartSteps = inputPhase.getChildren().stream()
-                    .filter(step -> step.getPodInstanceRequirement().get().getPodInstance().getIndex() != replaceIndex)
+                    .filter(step -> step.getPodInstance().get().getId().getIndex() != replaceIndex)
                     .map(step -> {
-                        PodInstanceRequirement restartPodInstanceRequirement =
-                                PodInstanceRequirement.newBuilder(
-                                        step.getPodInstanceRequirement().get().getPodInstance(),
-                                        step.getPodInstanceRequirement().get().getTasksToLaunch())
-                                        .recoveryType(RecoveryType.TRANSIENT)
-                                        .build();
+                        PodLaunch restartPodLaunch = PodLaunch.newBuilder(
+                                step.getPodInstance().get(),
+                                step.getPodLaunch().get().getTasksToLaunch())
+                                .recoveryType(RecoveryType.TRANSIENT)
+                                .build();
 
                         return new RecoveryStep(
                                 step.getName(),
-                                restartPodInstanceRequirement,
+                                step.getPodInstance().get(),
+                                restartPodLaunch,
                                 new UnconstrainedLaunchConstrainer(),
                                 stateStore);
                     })

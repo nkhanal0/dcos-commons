@@ -2,7 +2,7 @@ package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodLaunch;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,7 +52,7 @@ public class DependencyStrategyHelper<C extends Element> {
         }
     }
 
-    public Collection<C> getCandidates(boolean isInterrupted, Collection<PodInstanceRequirement> dirtyAssets) {
+    public Collection<C> getCandidates(boolean isInterrupted, Collection<PodLaunch> dirtyAssets) {
         if (isInterrupted) {
             return Collections.emptyList();
         }
