@@ -7,7 +7,7 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.scheduler.plan.PodLaunchTestUtils;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -76,14 +76,11 @@ public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite 
     private static PodInstance getPodInstance(TaskInfo taskInfo) {
         try {
             TaskLabelReader labels = new TaskLabelReader(taskInfo);
-            ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
-            PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
-                    resourceSet,
-                    labels.getType(),
-                    labels.getIndex())
+            ResourceSet resourceSet = PodLaunchTestUtils.getCpuResourceSet(1.0);
+            PodSpec podSpec = PodLaunchTestUtils.getRequirement(resourceSet, labels.getPodId())
                     .getPodInstance()
                     .getPod();
-            return new PodInstance(podSpec, labels.getIndex());
+            return new PodInstance(podSpec, labels.getPodId().getIndex());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

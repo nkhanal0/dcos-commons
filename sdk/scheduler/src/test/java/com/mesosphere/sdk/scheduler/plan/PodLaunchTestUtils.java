@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 /**
  * Utilities relating to constructing {@link PodLaunch}s.
  */
-public class PodInstanceRequirementTestUtils {
+public class PodLaunchTestUtils {
 
-    private PodInstanceRequirementTestUtils() {
+    private PodLaunchTestUtils() {
         // do not instantiate
     }
 
@@ -146,10 +146,10 @@ public class PodInstanceRequirementTestUtils {
     }
 
     public static PodLaunch getRequirement(ResourceSet resourceSet, int index) {
-        return getRequirement(resourceSet, TestConstants.POD_TYPE, index);
+        return getRequirement(resourceSet, new PodId(TestConstants.POD_TYPE, index));
     }
 
-    public static PodLaunch getRequirement(ResourceSet resourceSet, String type, int index) {
+    public static PodLaunch getRequirement(ResourceSet resourceSet, PodId podId) {
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(TestConstants.TASK_NAME)
                 .commandSpec(
@@ -160,11 +160,11 @@ public class PodInstanceRequirementTestUtils {
                 .resourceSet(resourceSet)
                 .build();
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, Arrays.asList(taskSpec))
+        PodSpec podSpec = DefaultPodSpec.newBuilder(podId.getType(), 1, Arrays.asList(taskSpec))
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
-        PodInstance podInstance = new PodInstance(podSpec, index);
+        PodInstance podInstance = new PodInstance(podSpec, podId.getIndex());
 
         List<String> taskNames = podInstance.getPod().getTasks().stream()
                 .map(ts -> ts.getName())

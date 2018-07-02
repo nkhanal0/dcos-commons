@@ -31,7 +31,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveLaunchScalar() throws Exception {
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(1.0);
         Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -105,7 +105,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testRelaunchExpectedScalar() throws Exception {
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(1.0);
 
         // Launch for the first time.
         String resourceId = getFirstResourceId(
@@ -136,11 +136,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Launch for the first time with 2.0 cpus offered, 1.0 cpus required.
         String resourceId = getFirstResourceId(
                 recordLaunchWithCompleteOfferedResources(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0),
+                        PodLaunchTestUtils.getCpuRequirement(1.0),
                         ResourceTestUtils.getUnreservedCpus(2.0)));
 
         // Launch again with 1.0 cpus reserved, 1.0 cpus unreserved, and 2.0 cpus required.
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(2.0);
         Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
         Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
 
@@ -191,13 +191,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Launch for the first time with 2.0 cpus offered, 1.0 cpus required.
         String resourceId = getFirstResourceId(
                 recordLaunchWithCompleteOfferedResources(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0, preReservedRole),
+                        PodLaunchTestUtils.getCpuRequirement(1.0, preReservedRole),
                         preReservedRole,
                         ResourceTestUtils.getUnreservedCpus(2.0, preReservedRole)));
 
         // Launch again with 1.0 cpus reserved, 1.0 cpus unreserved, and 2.0 cpus required.
         PodLaunch podInstanceRequirement =
-                PodInstanceRequirementTestUtils.getCpuRequirement(2.0, preReservedRole);
+                PodLaunchTestUtils.getCpuRequirement(2.0, preReservedRole);
         Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
         Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0, preReservedRole);
 
@@ -235,7 +235,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testDecreaseReservationScalar() throws Exception {
         // Launch for the first time.
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
-                PodInstanceRequirementTestUtils.getCpuRequirement(2.0),
+                PodLaunchTestUtils.getCpuRequirement(2.0),
                 ResourceTestUtils.getUnreservedCpus(2.0))
                 .get(0);
         String resourceId = getResourceId(reserveResource);
@@ -243,7 +243,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 stateStore.fetchTasks().iterator().next().getExecutor());
 
         // Launch again with fewer resources.
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(1.0);
         Resource offeredResource = ResourceTestUtils.getReservedCpus(2.0, resourceId);
         Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
         offeredResources.addAll(Arrays.asList(offeredResource, unreservedResource));
@@ -286,7 +286,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testFailIncreaseReservationScalar() throws Exception {
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(2.0);
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement,
                 ResourceTestUtils.getUnreservedCpus(2.0))
@@ -302,7 +302,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testLaunchAttributesEmbedded() throws Exception {
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(1.0);
         // Launch for the first time.
         String resourceId = getFirstResourceId(
                 recordLaunchWithCompleteOfferedResources(
@@ -400,7 +400,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testLaunchNotOnFirstOffer() throws Exception {
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(1.0);
         Resource insufficientOffer = ResourceTestUtils.getUnreservedMem(2.0);
         Resource sufficientOffer = ResourceTestUtils.getUnreservedCpus(2.0);
 
@@ -775,7 +775,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testGetTargetconfigRecoveryTypeNone() {
         PodLaunch podInstanceRequirement =
                 PodLaunch.newBuilder(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        PodLaunchTestUtils.getCpuRequirement(1.0))
                         .recoveryType(RecoveryType.NONE)
                         .build();
 
@@ -792,7 +792,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testGetTargetconfigRecoveryEmptyTaskCollection() {
         PodLaunch podInstanceRequirement =
                 PodLaunch.newBuilder(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        PodLaunchTestUtils.getCpuRequirement(1.0))
                         .recoveryType(RecoveryType.TRANSIENT)
                         .build();
 
@@ -809,7 +809,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testGetTargetconfigRecoveryTypeAnyMissingLabel() {
         PodLaunch podInstanceRequirement =
                 PodLaunch.newBuilder(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        PodLaunchTestUtils.getCpuRequirement(1.0))
                         .recoveryType(RecoveryType.TRANSIENT)
                         .build();
 
@@ -826,7 +826,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testGetTargetconfigRecoveryTypeAny() {
         PodLaunch podInstanceRequirement =
                 PodLaunch.newBuilder(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        PodLaunchTestUtils.getCpuRequirement(1.0))
                         .recoveryType(RecoveryType.TRANSIENT)
                         .build();
 

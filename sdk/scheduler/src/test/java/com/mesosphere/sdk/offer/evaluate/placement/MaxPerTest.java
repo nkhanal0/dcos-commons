@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.PodTestUtils;
@@ -33,8 +34,7 @@ public class MaxPerTest {
         podInstance = PodTestUtils.getPodInstance(0);
         taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
                 new TaskLabelWriter(TestConstants.TASK_INFO)
-                        .setType("different-type")
-                        .setIndex(100)
+                        .setPodId(new PodId("different-type", 100))
                         .toProto())
                 .build();
 
@@ -128,11 +128,8 @@ public class MaxPerTest {
                 Arrays.asList("key0"),
                 AnyMatcher.create());
 
-        taskInfo = taskInfo.toBuilder().setLabels(
-                new TaskLabelWriter(taskInfo)
-                        .setType(podInstance.getPod().getType())
-                        .setIndex(podInstance.getIndex())
-                        .toProto())
+        taskInfo = taskInfo.toBuilder()
+                .setLabels(new TaskLabelWriter(taskInfo).setPodId(podInstance.getId()).toProto())
                 .build();
 
         assertTrue(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());
@@ -150,11 +147,8 @@ public class MaxPerTest {
                 Arrays.asList("key0"),
                 AnyMatcher.create());
 
-        taskInfo = taskInfo.toBuilder().setLabels(
-                new TaskLabelWriter(taskInfo)
-                        .setType(podInstance.getPod().getType())
-                        .setIndex(podInstance.getIndex())
-                        .toProto())
+        taskInfo = taskInfo.toBuilder()
+                .setLabels(new TaskLabelWriter(taskInfo).setPodId(podInstance.getId()).toProto())
                 .build();
 
         assertTrue(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());

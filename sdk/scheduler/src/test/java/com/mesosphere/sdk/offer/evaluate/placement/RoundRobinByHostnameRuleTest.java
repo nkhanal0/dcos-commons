@@ -6,7 +6,7 @@ import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.scheduler.plan.PodLaunchTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
@@ -35,7 +35,7 @@ public class RoundRobinByHostnameRuleTest extends DefaultCapabilitiesTestSuite {
 
     @BeforeClass
     public static void beforeAll() throws InvalidRequirementException {
-        POD = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance();
+        POD = PodLaunchTestUtils.getCpuRequirement(1.0).getPodInstance();
     }
 
     private static TaskInfo getTaskInfo(String name, String host) {
@@ -63,8 +63,8 @@ public class RoundRobinByHostnameRuleTest extends DefaultCapabilitiesTestSuite {
     private static PodInstance getPodInstance(TaskInfo taskInfo) {
         try {
             TaskLabelReader labels = new TaskLabelReader(taskInfo);
-            ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
-            PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
+            ResourceSet resourceSet = PodLaunchTestUtils.getCpuResourceSet(1.0);
+            PodSpec podSpec = PodLaunchTestUtils.getRequirement(
                     resourceSet,
                     labels.getType(),
                     labels.getIndex())

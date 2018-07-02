@@ -22,7 +22,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegionRuleFactory;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -452,7 +452,8 @@ public class SchedulerBuilder {
             launchConstrainer = new UnconstrainedLaunchConstrainer();
             failureMonitor = new NeverFailureMonitor();
         }
-        return new DefaultRecoveryPlanManager(
+        return new RecoveryPlanManager(
+                serviceSpec,
                 stateStore,
                 configStore,
                 PlanUtils.getLaunchableTasks(plans),

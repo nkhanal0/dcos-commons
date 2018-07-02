@@ -52,7 +52,7 @@ public class PodTestUtils {
         return new PodInstance(getPodSpec(), index);
     }
 
-    public static PodLaunch getPodInstanceRequirement(int index) {
+    public static PodLaunch getPodLaunch(int index) {
         List<String> tasksToLaunch = Arrays.asList(getTaskSpec().getName());
         return PodLaunch.newBuilder(getPodInstance(index), tasksToLaunch).build();
     }

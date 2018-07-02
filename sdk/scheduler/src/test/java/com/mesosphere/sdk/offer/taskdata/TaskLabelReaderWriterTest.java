@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.HealthCheck;
@@ -93,18 +94,20 @@ public class TaskLabelReaderWriterTest {
 
     @Test(expected = TaskException.class)
     public void testGetMissingTaskTypeFails() throws TaskException {
-        new TaskLabelReader(getTestTaskInfo()).getType();
+        new TaskLabelReader(getTestTaskInfo()).getPodId().getType();
     }
 
     @Test
-    public void testSetGetTaskType() throws TaskException {
+    public void testSetGetPodId() throws TaskException {
+        PodId podId = new PodId("foo", 0);
         Protos.TaskInfo.Builder builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new TaskLabelWriter(builder).setType("foo").toProto());
-        Assert.assertEquals("foo", new TaskLabelReader(builder).getType());
+        builder.setLabels(new TaskLabelWriter(builder).setPodId(podId).toProto());
+        Assert.assertEquals(podId, new TaskLabelReader(builder).getPodId());
 
+        podId = new PodId("", 5);
         builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new TaskLabelWriter(builder).setType("").toProto());
-        Assert.assertEquals("", new TaskLabelReader(builder).getType());
+        builder.setLabels(new TaskLabelWriter(builder).setPodId(podId).toProto());
+        Assert.assertEquals(podId, new TaskLabelReader(builder).getPodId());
     }
 
     @Test

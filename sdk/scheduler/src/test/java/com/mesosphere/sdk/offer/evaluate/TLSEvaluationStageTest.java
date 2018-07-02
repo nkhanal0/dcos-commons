@@ -8,7 +8,7 @@ import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodLaunch;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.scheduler.plan.PodLaunchTestUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.PodTestUtils;
@@ -85,7 +85,7 @@ public class TLSEvaluationStageTest {
     private PodInfoBuilder getPodInfoBuilderForTransportEncryption(
             Collection<TransportEncryptionSpec> transportEncryptionSpecs) throws InvalidRequirementException {
         PodLaunch podInstanceRequirement = getRequirementWithTransportEncryption(
-                PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
+                PodLaunchTestUtils.getCpuResourceSet(1.0),
                 TestConstants.POD_TYPE,
                 0,
                 transportEncryptionSpecs);

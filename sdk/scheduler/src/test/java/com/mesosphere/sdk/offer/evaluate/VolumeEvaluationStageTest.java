@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.plan.PodLaunch;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.scheduler.plan.PodLaunchTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.*;
@@ -23,18 +23,17 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
-        PodLaunch podInstanceRequirement =
-                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000);
+        PodLaunch podLaunch = PodLaunchTestUtils.getMountVolumeRequirement(1.0, 1000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
-                getVolumeSpec(podInstanceRequirement.getPodInstance()),
-                getTaskName(podInstanceRequirement.getPodInstance()),
+                getVolumeSpec(podLaunch.getPodInstance()),
+                getTaskName(podLaunch.getPodInstance()),
                 Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
                         mesosResourcePool,
                         new PodInfoBuilder(
-                                podInstanceRequirement,
+                                podLaunch,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
                                 PodTestUtils.getTemplateUrlFactory(),
@@ -77,7 +76,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodLaunch podInstanceRequirement =
-                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000);
+                PodLaunchTestUtils.getMountVolumeRequirement(1.0, 2000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),

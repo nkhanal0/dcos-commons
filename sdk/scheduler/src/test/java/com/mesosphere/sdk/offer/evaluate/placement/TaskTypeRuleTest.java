@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.scheduler.plan.PodLaunchTestUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
@@ -49,7 +49,7 @@ public class TaskTypeRuleTest {
     private static final Collection<TaskInfo> MISMATCH_TASKS = Arrays.asList(
             TASK_MISMATCH_1, TASK_MISMATCH_2, TASK_MISMATCH_3);
 
-    private static final PodInstance POD = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance();
+    private static final PodInstance POD = PodLaunchTestUtils.getCpuRequirement(1.0).getPodInstance();
     private static final PodInstance POD_WITH_TASK_MATCH_1 = getPodInstance(TASK_MATCH_1);
     private static final PodInstance POD_WITH_TASK_MATCH_3 = getPodInstance(TASK_MATCH_3);
     private static final PodInstance POD_WITH_TASK_MISMATCH_1 = getPodInstance(TASK_MISMATCH_1);
@@ -59,8 +59,8 @@ public class TaskTypeRuleTest {
     private static PodInstance getPodInstance(TaskInfo taskInfo) {
         try {
             TaskLabelReader labels = new TaskLabelReader(taskInfo);
-            ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
-            PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
+            ResourceSet resourceSet = PodLaunchTestUtils.getCpuResourceSet(1.0);
+            PodSpec podSpec = PodLaunchTestUtils.getRequirement(
                     resourceSet,
                     labels.getType(),
                     labels.getIndex())

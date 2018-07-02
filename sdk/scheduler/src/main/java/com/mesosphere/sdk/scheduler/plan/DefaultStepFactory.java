@@ -51,7 +51,7 @@ public class DefaultStepFactory implements StepFactory {
                     .collect(Collectors.toList());
 
             return new DeploymentStep(
-                    TaskUtils.getStepName(podInstance, tasksToLaunch),
+                    TaskUtils.getStepName(podInstance.getId(), tasksToLaunch),
                     podInstance,
                     PodLaunch.newBuilder(podInstance, tasksToLaunch).build(),
                     stateStore,

@@ -221,7 +221,7 @@ public class PodInfoBuilder {
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                 .setTargetConfiguration(targetConfigurationId)
                 .setGoalState(taskSpec.getGoal())
-                .setId(podInstance.getId())
+                .setPodId(podInstance.getId())
                 .toProto());
 
         if (taskSpec.getCommand().isPresent()) {

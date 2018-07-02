@@ -6,6 +6,7 @@ import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.GoalStateOverride;
@@ -65,10 +66,7 @@ public class PodQueriesTest {
     static {
         // pod 0
         TaskInfo.Builder infoBuilder = NO_POD_TASK.toBuilder();
-        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder)
-                .setType("test")
-                .setIndex(0)
-                .toProto());
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setPodId(new PodId("test", 0)).toProto());
         POD_0_TASK_A = infoBuilder.setName("test-0-a").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "a")).build();
         POD_0_STATUS_A = TaskTestUtils.generateStatus(POD_0_TASK_A.getTaskId(), TaskState.TASK_RUNNING);
 
@@ -82,7 +80,7 @@ public class PodQueriesTest {
 
         // pod 1
         infoBuilder = POD_0_TASK_A.toBuilder();
-        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(1).toProto());
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setPodId(new PodId("test", 1)).toProto());
         POD_1_TASK_A = infoBuilder.setName("test-1-a").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "a")).build();
         POD_1_STATUS_A = TaskTestUtils.generateStatus(POD_1_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
 
@@ -91,7 +89,7 @@ public class PodQueriesTest {
 
         // pod 2
         infoBuilder = POD_0_TASK_A.toBuilder();
-        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(2).toProto());
+        infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setPodId(new PodId("test", 2)).toProto());
         POD_2_TASK_A = infoBuilder.setName("test-2-a").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "a")).build();
         POD_2_STATUS_A = TaskTestUtils.generateStatus(POD_2_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
     }

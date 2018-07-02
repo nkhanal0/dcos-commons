@@ -9,6 +9,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -56,7 +57,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resources);
     private Collection<TaskInfo> taskInfos = Collections.singletonList(taskInfo);
 
-    private DefaultRecoveryPlanManager recoveryManager;
+    private RecoveryPlanManager recoveryManager;
     private FrameworkStore frameworkStore;
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
@@ -97,20 +98,21 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         taskInfo = TaskInfo.newBuilder(taskInfo)
                 .setLabels(new TaskLabelWriter(taskInfo)
                         .setTargetConfiguration(configTarget)
-                        .setIndex(0)
+                        .setPodId(new PodId("test-task-type", 0))
                         .toProto())
                 .setName("test-task-type-0-test-task-name")
                 .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "test-task-type-0-test-task-name"))
                 .build();
 
         taskInfos = Collections.singletonList(taskInfo);
-        recoveryManager = spy(new DefaultRecoveryPlanManager(
+        recoveryManager = spy(new RecoveryPlanManager(
                 stateStore,
                 configStore,
                 new HashSet<>(Arrays.asList(taskInfo.getName())),
                 launchConstrainer,
                 failureMonitor,
-                Optional.empty()));
+                Optional.empty(),
+                Collections.emptyList()));
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);

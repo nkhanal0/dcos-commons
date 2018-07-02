@@ -118,7 +118,7 @@ public class OfferEvaluator {
                 outcomeDetails.deleteCharAt(outcomeDetails.length() - 1);
             }
 
-            String stepName = TaskUtils.getStepName(podInstance, podLaunch.getTasksToLaunch());
+            String stepName = TaskUtils.getStepName(podInstance.getId(), podLaunch.getTasksToLaunch());
             if (failedOutcomeCount != 0) {
                 logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
                         i + 1,

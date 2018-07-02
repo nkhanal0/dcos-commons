@@ -3,6 +3,7 @@ package com.mesosphere.sdk.testutils;
 import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.specification.PodId;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,8 +28,7 @@ public class TaskTestUtils {
                 .setCommand(TestConstants.COMMAND_INFO)
                 .setContainer(TestConstants.CONTAINER_INFO);
         builder.setLabels(new TaskLabelWriter(builder)
-                .setType(TestConstants.TASK_TYPE)
-                .setIndex(index)
+                .setPodId(new PodId(TestConstants.TASK_TYPE, index))
                 .toProto());
         for (Protos.Resource r : resources) {
             String resourceId = "";

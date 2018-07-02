@@ -4,6 +4,7 @@ import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -42,7 +43,7 @@ public class EndpointsQueriesTest {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
         builder.setLabels(new TaskLabelWriter(builder)
                 .setHostname(OfferTestUtils.getOffer(Collections.emptyList()))
-                .setType("some-task-type")
+                .setPodId(new PodId("some-task-type", 0))
                 .toProto());
         TASK_WITH_METADATA = builder.build();
 

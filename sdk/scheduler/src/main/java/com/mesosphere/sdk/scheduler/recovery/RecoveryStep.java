@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * An extension of {@link DeploymentStep} meant for use with {@link DefaultRecoveryPlanManager}.
+ * An extension of {@link DeploymentStep} meant for use with {@link RecoveryPlanManager}.
  */
 public class RecoveryStep extends DeploymentStep {
 

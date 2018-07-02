@@ -75,11 +75,7 @@ public class WorkSetTrackerTest {
     }
 
     private List<Step> getSteps(Integer index) {
-        PodLaunch podInstanceRequirement = PodTestUtils.getPodInstanceRequirement(index);
-        return Arrays.asList(
-                new TestStep(
-                        testUUID,
-                        String.format("step-%d", podInstanceRequirement.getPodInstance().getIndex()),
-                        podInstanceRequirement));
+        PodLaunch podLaunch = PodTestUtils.getPodLaunch(index);
+        return Arrays.asList(new TestStep(testUUID, String.format("step-%d", podLaunch.getId().getIndex()), podLaunch));
     }
 }

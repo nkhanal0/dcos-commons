@@ -4,7 +4,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.PodLaunch;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.scheduler.plan.PodLaunchTestUtils;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -33,7 +33,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
                 Collections.emptyList())
                 .get();
 
-        PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
+        PodSpec podSpec = PodLaunchTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
         podSpec = DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(placementRule)
                 .build();
@@ -78,7 +78,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
                 Collections.emptyList(),
                 Arrays.asList("some-random-agent")).get();
 
-        PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
+        PodSpec podSpec = PodLaunchTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
         podSpec = DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(placementRule)
                 .build();

@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.PodId;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -415,8 +416,7 @@ public class StateStoreUtilsTest {
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                 .setTargetConfiguration(targetConfig)
-                .setType(podType)
-                .setIndex(podIndex)
+                .setPodId(new PodId(podType, podIndex))
                 .toProto());
 
         return taskInfoBuilder.build();

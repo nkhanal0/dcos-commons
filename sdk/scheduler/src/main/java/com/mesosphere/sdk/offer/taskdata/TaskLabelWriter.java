@@ -50,7 +50,7 @@ public class TaskLabelWriter {
     /**
      * Stores the provided pod ID, as a task type and task index. Any existing values are overwritten.
      */
-    public TaskLabelWriter setId(PodId podId) {
+    public TaskLabelWriter setPodId(PodId podId) {
         writer.put(LabelConstants.TASK_TYPE_LABEL, podId.getType());
         writer.put(LabelConstants.TASK_INDEX_LABEL, String.valueOf(podId.getIndex()));
         return this;

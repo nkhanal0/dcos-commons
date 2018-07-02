@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.PodLaunch;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
+import com.mesosphere.sdk.scheduler.plan.PodLaunchTestUtils;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.PodTestUtils;
@@ -21,7 +21,7 @@ import java.util.UUID;
 public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
     @Test
     public void testRejectOfferWithoutExpectedExecutorId() throws Exception {
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(1.0);
 
         // Record launch and RUNNING status
         String resourceId = getFirstResourceId(
@@ -63,7 +63,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testAcceptOfferWithExpectedExecutorId() throws Exception {
-        PodLaunch podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        PodLaunch podInstanceRequirement = PodLaunchTestUtils.getCpuRequirement(1.0);
 
         // Record launch and RUNNING status
         String resourceId = getFirstResourceId(
